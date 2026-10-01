@@ -11,7 +11,7 @@ namespace HistorialAcademico.Tests;
 public class EquivalenciasDeclaradasFormatoTests
 {
     /// <summary>Un pénsum (plan 2023) que cubre materias de un plan anterior.</summary>
-    private const string Base = """
+    private static readonly string Base = """
         {
           "formato": 1, "universidad": "u", "carrera": "c", "nombreCarrera": "C", "version": "2023", "totalCreditos": 7, "cuatrimestres": 2,
           "materias": [
@@ -24,7 +24,7 @@ public class EquivalenciasDeclaradasFormatoTests
             { "origen": "ESP102", "destino": [] }
           ]
         }
-        """;
+        """.ReplaceLineEndings("\n");   // un texto literal toma los finales de línea del archivo: con CRLF (Git en Windows) las pruebas buscan "\n"
 
     private static ResultadoPensumJson Con(string buscar, string reemplazo) => PensumJson.Leer(Base.Replace(buscar, reemplazo));
 

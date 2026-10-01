@@ -11,6 +11,7 @@ public static class Muestras
     /// </summary>
     public static string Anonimizado => Path.Combine(AppContext.BaseDirectory, "Samples", "historico-anonimizado.html");
 
-    public static string LeerSintetico() => File.ReadAllText(Sintetico);
-    public static string LeerAnonimizado() => File.ReadAllText(Anonimizado);
+    // Siempre con "\n": en Windows Git puede dejar los archivos con CRLF y varias pruebas parten o reemplazan el HTML buscando saltos de línea.
+    public static string LeerSintetico() => File.ReadAllText(Sintetico).ReplaceLineEndings("\n");
+    public static string LeerAnonimizado() => File.ReadAllText(Anonimizado).ReplaceLineEndings("\n");
 }

@@ -1,0 +1,9 @@
+# Los archivos de texto se descargan con saltos de línea LF en cualquier sistema (también en Windows): varias pruebas, los flujos de GitHub
+# y los scripts dependen de eso. Las imágenes y otros binarios no se tocan.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

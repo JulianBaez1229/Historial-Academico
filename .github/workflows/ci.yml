@@ -32,8 +32,17 @@ jobs:
       - name: Instalar el navegador de las pruebas
         run: pwsh HistorialAcademico.Banner/bin/Release/net8.0/playwright.ps1 install chromium
 
+      # Sin imprimir cada prueba (son más de mil y el registro se trunca): solo salen las que fallan, con su mensaje.
       - name: Correr las pruebas
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal"
+        run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=resultados.trx" --results-directory resultados
+
+      - name: Guardar el detalle de las pruebas si algo falló
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-de-las-pruebas
+          path: resultados/*.trx
+          if-no-files-found: ignore
 
       - name: Validar los pénsums
         run: dotnet run --project HistorialAcademico.Validador --configuration Release --no-build -- validar pensums
