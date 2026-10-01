@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- tests/samples: muestras anonimizadas (ver tests/samples/README.md) -->
+    <None Include="..\tests\samples\**" Link="Samples\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HistorialAcademico.Core\HistorialAcademico.Core.csproj" />
+    <ProjectReference Include="..\HistorialAcademico.Banner\HistorialAcademico.Banner.csproj" />
+    <ProjectReference Include="..\HistorialAcademico.Web\HistorialAcademico.Web.csproj" />
+    <ProjectReference Include="..\HistorialAcademico.Validador\HistorialAcademico.Validador.csproj" />
+  </ItemGroup>
+
+</Project>

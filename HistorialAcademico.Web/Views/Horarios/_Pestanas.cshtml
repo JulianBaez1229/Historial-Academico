@@ -1,0 +1,10 @@
+@* Pestañas de «Horarios de Banner». Se pasa la pestaña activa en ViewData["Pestana"]. *@
+@{
+    var activa = ViewData["Pestana"] as string;
+}
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link @(activa == "secciones" ? "active" : "")" asp-action="Index">Secciones de Banner</a></li>
+    <li class="nav-item"><a class="nav-link @(activa == "tentativo" ? "active" : "")" asp-action="Tentativo">Mi horario tentativo</a></li>
+    <li class="nav-item"><a class="nav-link @(activa == "nodisponible" ? "active" : "")" asp-action="NoDisponible">Horas no disponibles</a></li>
+    <li class="nav-item"><a class="nav-link @(activa == "apertura" ? "active" : "")" asp-action="Apertura">Solicitar apertura</a></li>
+</ul>

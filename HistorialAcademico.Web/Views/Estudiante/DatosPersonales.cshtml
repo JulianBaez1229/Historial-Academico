@@ -1,0 +1,32 @@
+@model EstadoAcademico
+@inject HistorialAcademico.Web.Services.ReglasUniversidadService Universidades
+@{
+    ViewData["Title"] = "Datos Personales";
+    var a = Model.Alumno;
+}
+
+<h1 class="h3 mb-3">Datos Personales</h1>
+
+@if (a is null)
+{
+    <div class="alert alert-info">Aún no hay datos. Pulsa <strong>Actualizar desde Banner</strong> para traerlos.</div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Nombre</dt><dd class="col-sm-8">@(string.IsNullOrEmpty(a.Nombre) ? "—" : Ui.TituloBonito(a.Nombre))</dd>
+                <dt class="col-sm-4">Fecha de nacimiento</dt><dd class="col-sm-8">@Ui.FechaLarga(a.FechaNacimiento)</dd>
+                <dt class="col-sm-4">Universidad</dt><dd class="col-sm-8" id="universidad-elegida">@(Universidades.NombreDeLaUniversidadElegida ?? "—")</dd>
+                <dt class="col-sm-4">Programa / Carrera</dt><dd class="col-sm-8">@Ui.TituloBonito(a.Programa)</dd>
+                <dt class="col-sm-4">Escuela</dt><dd class="col-sm-8">@Ui.TituloBonito(a.Escuela)</dd>
+                <dt class="col-sm-4">Campus</dt><dd class="col-sm-8">@Ui.TituloBonito(a.Campus)</dd>
+                <dt class="col-sm-4">Grado a obtener</dt><dd class="col-sm-8">@Ui.TituloBonito(a.GradoAObtener)</dd>
+                <dt class="col-sm-4">Tipo de alumno</dt><dd class="col-sm-8">@Ui.TituloBonito(a.TipoAlumno)</dd>
+                <dt class="col-sm-4">Estado académico</dt><dd class="col-sm-8">@Ui.TituloBonito(a.EstadoAcademico)</dd>
+                <dt class="col-sm-4">Período de ingreso</dt><dd class="col-sm-8">@(Model.PeriodoIngreso ?? "—")</dd>
+            </dl>
+        </div>
+    </div>
+}

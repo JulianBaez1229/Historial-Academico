@@ -1,0 +1,115 @@
+@model EstadoPlanificador
+@using HistorialAcademico.Core.Planificacion
+@using HistorialAcademico.Web.Services
+@{
+    // La hoja del plan: una sola página, sin menú ni botones, con todo el estilo dentro (no carga nada de fuera) para que el navegador la
+    // dibuje igual en el PDF, en la imagen y al imprimir. Los colores van fijos porque el papel siempre es claro.
+    Layout = null;
+    var actual = Model.Actual!;
+    var ev = Model.Evaluacion!;
+    var ctx = Model.Contexto!;
+    var alumno = Model.Estado.Alumno;
+    var conMaterias = ev.Periodos.Where(p => p.Materias.Count > 0).OrderBy(p => p.Periodo).ToList();
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var nombre = Ui.TituloBonito(alumno?.Nombre);
+    var pesado = ev.PeriodoMasPesado;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plan «@actual.Nombre» – Historial Académico</title>
+    <style>
+        @@page { size: A4 landscape; margin: 10mm; }
+        * { box-sizing: border-box; }
+        html { background: #e9ecf3; }
+        body { margin: 0; padding: 24px 0; font: 13px/1.35 "Segoe UI", system-ui, -apple-system, Arial, sans-serif; color: #1a1f36; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        #hoja { width: 1047px; margin: 0 auto; padding: 18px 20px; background: #ffffff; }
+        header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; border-bottom: 3px solid #1b2a7e; padding-bottom: 8px; }
+        h1 { margin: 0; font-size: 22px; color: #1b2a7e; }
+        .activo { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: #146c43; color: #ffffff; font-size: 11px; vertical-align: middle; }
+        .quien { margin: 2px 0 0; color: #4a5170; }
+        .fecha { color: #4a5170; text-align: right; font-size: 12px; }
+        .resumen { display: flex; gap: 10px; margin: 12px 0; }
+        .dato { flex: 1 1 0; border: 1px solid #d5daea; border-radius: 6px; padding: 6px 10px; background: #f1f3fa; }
+        .dato b { display: block; font-size: 17px; color: #1b2a7e; }
+        .dato span { font-size: 11px; color: #4a5170; }
+        .columnas { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; align-items: start; }
+        .col { border: 1px solid #d5daea; border-radius: 6px; overflow: hidden; break-inside: avoid; }
+        .col h2 { margin: 0; padding: 5px 8px; font-size: 13px; background: #1b2a7e; color: #ffffff; display: flex; justify-content: space-between; }
+        .col.sobre h2 { background: #a11723; }
+        .col ul { list-style: none; margin: 0; padding: 4px 8px 6px; }
+        .col li { display: flex; justify-content: space-between; gap: 6px; padding: 3px 0; border-bottom: 1px dotted #d5daea; }
+        .col li:last-child { border-bottom: 0; }
+        .col li .n { flex: 1 1 auto; }
+        .col li .n b { color: #1b2a7e; }
+        .col li .c { flex: 0 0 auto; color: #4a5170; white-space: nowrap; }
+        .col li.mal .n { color: #a11723; }
+        .sin, .alerta, .pie { margin-top: 10px; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+        .sin { border: 1px solid #c4a23a; background: #fbf5df; }
+        .alerta { border: 1px solid #d0202e; background: #fdecee; color: #7b0f18; }
+        .pie { color: #4a5170; padding: 0; margin-top: 12px; }
+        .imprimir { position: fixed; right: 16px; top: 12px; padding: 6px 14px; border: 0; border-radius: 6px; background: #1b2a7e; color: #ffffff; font: inherit; cursor: pointer; }
+        @@media print { html, body { background: #ffffff; padding: 0; } #hoja { width: auto; padding: 0; } .imprimir { display: none; } }
+    </style>
+</head>
+<body>
+    <button type="button" class="imprimir" onclick="window.print()">Imprimir</button>
+    <main id="hoja">
+        <header>
+            <div>
+                <h1>Plan de estudios: @(actual.Nombre) @if (actual.Activo) { <span class="activo">Plan activo</span> }</h1>
+                <p class="quien">
+                    @if (nombre.Length > 0) { <text>@nombre · </text> }@(alumno?.Programa is { Length: > 0 } programa ? Ui.TituloBonito(programa) + " · " : "")@Model.Estado.Reglas.Nombre
+                </p>
+            </div>
+            <div class="fecha">Generado el @DateTime.Now.ToString("d 'de' MMMM 'de' yyyy", Ui.Cultura)</div>
+        </header>
+
+        <section class="resumen" aria-label="Resumen del plan">
+            <div class="dato"><b>@(ev.Graduacion?.Nombre ?? "—")</b><span>Graduación @(ev.GraduacionEstimada ? "estimada (faltan materias por planificar)" : "según este plan")</span></div>
+            <div class="dato"><b>@ev.CuatrimestresPlanificados</b><span>@(ev.CuatrimestresPlanificados == 1 ? "cuatrimestre planificado" : "cuatrimestres planificados")</span></div>
+            <div class="dato"><b>@ev.CreditosFaltantes</b><span>créditos faltantes en total</span></div>
+            <div class="dato"><b>@ev.PromedioCreditos.ToString("0.#", inv)</b><span>créditos por período, en promedio</span></div>
+            <div class="dato"><b>@(pesado is null ? "—" : $"{pesado.Periodo.Nombre}")</b><span>período más pesado@(pesado is null ? "" : $" ({pesado.Creditos} cr)") · límite @ctx.Limite cr</span></div>
+        </section>
+
+        @if (conMaterias.Count == 0)
+        {
+            <div class="sin">Este plan todavía no tiene materias planificadas.</div>
+        }
+        else
+        {
+            <section class="columnas" aria-label="Materias por período">
+                @foreach (var p in conMaterias)
+                {
+                    <div class="col @(p.SobreLimite ? "sobre" : "")">
+                        <h2><span>@p.Periodo.Nombre</span><span>@p.Creditos cr</span></h2>
+                        <ul>
+                            @foreach (var m in p.Materias)
+                            {
+                                <li class="@(m.EsValida ? "" : "mal")"><span class="n"><b>@m.Codigo</b> @m.Nombre</span><span class="c">@m.Creditos cr</span></li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </section>
+        }
+
+        @if (ev.SinPlanificar.Count > 0)
+        {
+            <div class="sin"><b>Sin planificar</b> (@ev.SinPlanificar.Count @(ev.SinPlanificar.Count == 1 ? "materia" : "materias"), @ev.CreditosSinPlanificar créditos): @string.Join(", ", ev.SinPlanificar)</div>
+        }
+        @if (ev.Problemas > 0)
+        {
+            <div class="alerta"><b>Ojo:</b> este plan tiene @ev.Problemas @(ev.Problemas == 1 ? "problema" : "problemas") por resolver (las materias en rojo no cumplen sus requisitos donde están o algún período pasa el límite).</div>
+        }
+
+        <p class="pie">
+            Plan estimado con tus calificaciones y los prerrequisitos del pénsum; confírmalo con tu asesor académico antes de inscribir.
+            Generado con Historial Académico.
+        </p>
+    </main>
+</body>
+</html>

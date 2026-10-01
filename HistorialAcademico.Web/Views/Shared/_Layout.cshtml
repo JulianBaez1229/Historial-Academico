@@ -1,0 +1,145 @@
+@inject HistorialAcademico.Web.Perfiles.PerfilActual perfilActual
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>@ViewData["Title"] – Historial Académico</title>
+    @* Tema (claro, oscuro o "sistema"): se decide antes de pintar para que no haya un destello del tema equivocado. *@
+    <script>
+        try {
+            var preferencia = 'sistema';
+            try { preferencia = localStorage.getItem('tema') || 'sistema'; } catch (e) { }
+            if (preferencia !== 'claro' && preferencia !== 'oscuro') preferencia = 'sistema';
+            var oscuro = preferencia === 'oscuro' || (preferencia === 'sistema' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.setAttribute('data-tema', oscuro ? 'oscuro' : 'claro');
+            document.documentElement.setAttribute('data-tema-preferencia', preferencia);
+        } catch (e) { }
+    </script>
+    @* Se aplica antes de pintar para que el menú no "salte" al cargar (si el usuario lo dejó colapsado en escritorio). *@
+    <script>try { if (localStorage.getItem('menu-colapsado') === '1' && window.innerWidth >= 992) document.documentElement.classList.add('menu-colapsado'); } catch (e) { }</script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/tema.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    @{
+        var controlador = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var accion = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+        // Grupo, texto, controlador, acción (null = cualquier acción del controlador) e ícono.
+        (string Grupo, string Texto, string Ctrl, string? Accion, string Icono, string Destino)[] menu =
+        {
+            ("Mi carrera", "Inicio", "Home", "Index", "casa", "Index"),
+            ("Mi carrera", "Datos Personales", "Estudiante", "DatosPersonales", "usuario", "DatosPersonales"),
+            ("Mi carrera", "Materias Tomadas", "Estudiante", "MateriasTomadas", "libro", "MateriasTomadas"),
+            ("Mi carrera", "Materias Faltantes", "Estudiante", "MateriasFaltantes", "lista", "MateriasFaltantes"),
+            ("Mi carrera", "Índice Académico", "Estudiante", "IndiceAcademico", "grafico", "IndiceAcademico"),
+            ("Planificación", "Mapa del pénsum", "Pensum", "Mapa", "mapa", "Mapa"),
+            ("Planificación", "Qué puedo inscribir", "Pensum", "QueInscribir", "inscribir", "QueInscribir"),
+            ("Planificación", "Planificador", "Planificador", null, "calendario", "Index"),
+            ("Planificación", "Horarios de Banner", "Horarios", null, "reloj", "Index"),
+            ("Datos", "Carrera y pénsum", "Carrera", null, "birrete", "Index"),
+            ("Datos", "Materias a mano", "MateriasManuales", null, "libro", "Index"),
+            ("Datos", "Mis datos", "MisDatos", null, "usuario", "Index"),
+            ("Datos", "Pénsum (CSV)", "Pensum", "Index", "archivo", "Index"),
+            ("Datos", "Equivalencias", "Equivalencias", null, "intercambio", "Index"),
+            ("Datos", "Sincronizaciones", "Sincronizaciones", null, "refrescar", "Index"),
+        };
+
+        // Las páginas de detalle cuentan como su sección (el detalle de una materia tomada pertenece a Materias Tomadas).
+        string SeccionActiva() => (controlador, accion) switch
+        {
+            ("Estudiante", "DetalleMateriaTomada") => "MateriasTomadas",
+            ("Estudiante", "DetalleMateriaFaltante") => "MateriasFaltantes",
+            _ => accion,
+        };
+        var activa = SeccionActiva();
+    }
+
+    <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+
+    <div class="app">
+        <aside id="menu-lateral" class="menu-lateral" aria-label="Menú principal">
+            <div class="menu-cab">
+                <a class="marca" asp-controller="Home" asp-action="Index" title="Historial Académico">
+                    <span class="marca-logo" aria-hidden="true">HA</span>
+                    <span class="menu-texto">Historial Académico</span>
+                </a>
+            </div>
+            <nav>
+                @foreach (var grupo in menu.GroupBy(m => m.Grupo))
+                {
+                    <div class="menu-grupo">
+                        <span class="menu-titulo menu-texto">@grupo.Key</span>
+                        @foreach (var item in grupo)
+                        {
+                            var esActivo = item.Ctrl == controlador && (item.Accion is null || item.Accion == activa);
+                            <a class="menu-item @(esActivo ? "activo" : "")" href="@Url.Action(item.Destino, item.Ctrl)" title="@item.Texto"
+                               aria-current="@(esActivo ? "page" : null)">
+                                @Iconos.Svg(item.Icono)
+                                <span class="menu-texto">@item.Texto</span>
+                            </a>
+                        }
+                    </div>
+                }
+            </nav>
+        </aside>
+        <div id="menu-fondo" class="menu-fondo" aria-hidden="true"></div>
+
+        <div class="app-principal">
+            <header class="barra-superior">
+                <button id="btn-menu" type="button" class="btn-menu" aria-controls="menu-lateral" aria-expanded="true"
+                        aria-label="Mostrar u ocultar el menú" title="Mostrar u ocultar el menú">
+                    @Iconos.Svg("menu")
+                </button>
+                <vc:barra-sincronizacion />
+                @if (perfilActual.Perfil is { } perfil)
+                {
+                    <form asp-controller="Perfiles" asp-action="Salir" method="post" class="perfil-chip">
+                        <span class="perfil-chip-nombre" title="Perfil en uso">@Iconos.Svg("usuario")<span>@perfil.Nombre</span></span>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="@(perfil.TienePin ? "Cerrar este perfil (pedirá el PIN al volver)" : "Cambiar de perfil")">
+                            @(perfil.TienePin ? "Bloquear" : "Cambiar")
+                        </button>
+                    </form>
+                }
+                <div class="selector-tema" role="group" aria-label="Tema de color">
+                    <span class="selector-tema-titulo" aria-hidden="true">Tema</span>
+                    <button type="button" class="selector-tema-opcion" data-tema="sistema" aria-pressed="true"
+                            aria-label="Tema automático, según tu sistema" title="Automático (según tu sistema)">@Iconos.Svg("monitor")</button>
+                    <button type="button" class="selector-tema-opcion" data-tema="claro" aria-pressed="false"
+                            aria-label="Tema claro" title="Claro">@Iconos.Svg("sol")</button>
+                    <button type="button" class="selector-tema-opcion" data-tema="oscuro" aria-pressed="false"
+                            aria-label="Tema oscuro" title="Oscuro">@Iconos.Svg("luna")</button>
+                </div>
+            </header>
+
+            <main id="contenido" class="contenido" role="main">
+                <vc:aviso-actualizacion />
+                @RenderBody()
+            </main>
+
+            <footer class="pie">Historial Académico · proyecto independiente, no afiliado a ninguna universidad · uso personal · los datos se guardan solo en este equipo</footer>
+        </div>
+    </div>
+
+    <div id="sync-overlay" class="sync-overlay" hidden>
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status" aria-hidden="true"></div>
+                <h2 class="h5">Actualizando desde Banner…</h2>
+                <p class="mb-0 text-muted">
+                    Si se abre una ventana de Chromium, inicia sesión ahí (con el MFA si te lo pide) y no la cierres:
+                    se cierra sola cuando termina. Tienes hasta 5 minutos.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

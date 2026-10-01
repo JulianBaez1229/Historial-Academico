@@ -1,0 +1,115 @@
+{
+  "success": true,
+  "totalCount": 5,
+  "data": [
+    {
+      "id": 900001, "term": "209930", "termDesc": "SEP-DIC 2099 GRADO", "courseReferenceNumber": "90001", "partOfTerm": "1",
+      "courseNumber": "100", "courseDisplay": "100", "subject": "XYZ", "subjectDescription": "MATERIA DE PRUEBA", "sequenceNumber": "1",
+      "campusDescription": "CAMPUS - PRUEBA", "scheduleTypeDescription": "PRESENCIAL", "courseTitle": "DISE&Ntilde;O DE PRUEBA I",
+      "creditHours": null, "maximumEnrollment": 30, "enrollment": 29, "seatsAvailable": 1, "waitCapacity": 0, "waitCount": 0, "waitAvailable": 0,
+      "crossList": null, "crossListCapacity": null, "crossListCount": null, "crossListAvailable": null,
+      "creditHourHigh": null, "creditHourLow": 5, "creditHourIndicator": null, "openSection": true, "linkIdentifier": null, "isSectionLinked": false,
+      "subjectCourse": "XYZ100",
+      "faculty": [
+        { "bannerId": 9999001, "category": null, "class": "net.hedtech.banner.student.faculty.FacultyResultDecorator",
+          "courseReferenceNumber": "90001", "displayName": "Pedro Ejemplo, Prueba Uno", "emailAddress": "profesor.falso.uno@correo.falso.invalid",
+          "primaryIndicator": true, "term": "209930" }
+      ],
+      "meetingsFaculty": [
+        { "category": "01", "class": "net.hedtech.banner.student.schedule.SectionSessionDecorator", "courseReferenceNumber": "90001",
+          "faculty": [], "term": "209930",
+          "meetingTime": { "beginTime": "0801", "building": "E03", "buildingDescription": "EDIF-03", "campus": "P", "campusDescription": "CAMPUS - PRUEBA",
+            "category": "01", "class": "net.hedtech.banner.student.schedule.SectionSessionDecorator", "courseReferenceNumber": "90001", "creditHourSession": 5,
+            "endDate": "13-Dic-2099", "endTime": "1000", "friday": false, "hoursWeek": 4, "meetingScheduleType": "LAB", "meetingType": "CLAS",
+            "meetingTypeDescription": "CLASE", "monday": false, "room": "12", "saturday": false, "startDate": "01-Sep-2099", "sunday": false,
+            "term": "209930", "thursday": true, "tuesday": true, "wednesday": false } },
+        { "category": "01", "class": "net.hedtech.banner.student.schedule.SectionSessionDecorator", "courseReferenceNumber": "90001",
+          "faculty": [], "term": "209930",
+          "meetingTime": { "beginTime": "1801", "building": null, "buildingDescription": null, "campus": null, "campusDescription": null,
+            "category": "01", "class": "net.hedtech.banner.student.schedule.SectionSessionDecorator", "courseReferenceNumber": "90001", "creditHourSession": 5,
+            "endDate": "13-Dic-2099", "endTime": "2000", "friday": false, "hoursWeek": 2, "meetingScheduleType": "VIR", "meetingType": "CLAS",
+            "meetingTypeDescription": "CLASE", "monday": false, "room": null, "saturday": false, "startDate": "01-Sep-2099", "sunday": false,
+            "term": "209930", "thursday": false, "tuesday": false, "wednesday": false } }
+      ],
+      "reservedSeatSummary": null, "sectionAttributes": [], "instructionalMethod": "LAB", "instructionalMethodDescription": "LABORATORIO"
+    },
+    {
+      "id": 900002, "term": "209930", "termDesc": "SEP-DIC 2099 GRADO", "courseReferenceNumber": "90002", "partOfTerm": "1",
+      "courseNumber": "100", "courseDisplay": "100", "subject": "XYZ", "subjectDescription": "MATERIA DE PRUEBA", "sequenceNumber": "2",
+      "campusDescription": "CAMPUS - PRUEBA", "scheduleTypeDescription": "PRESENCIAL", "courseTitle": "DISE&Ntilde;O DE PRUEBA I",
+      "creditHours": null, "maximumEnrollment": 30, "enrollment": 30, "seatsAvailable": 0, "waitCapacity": 0, "waitCount": 0, "waitAvailable": 0,
+      "creditHourHigh": null, "creditHourLow": 5, "creditHourIndicator": null, "openSection": false, "linkIdentifier": null, "isSectionLinked": false,
+      "subjectCourse": "XYZ100",
+      "faculty": [
+        { "bannerId": 9999002, "category": null, "class": "x", "courseReferenceNumber": "90002", "displayName": "Marta &Aacute;lvarez Ficticia, Prueba Dos",
+          "emailAddress": "profesora.falsa.dos@correo.falso.invalid", "primaryIndicator": true, "term": "209930" },
+        { "bannerId": 9999003, "category": null, "class": "x", "courseReferenceNumber": "90002", "displayName": "Marta &Aacute;lvarez Ficticia, Prueba Dos",
+          "emailAddress": "profesora.falsa.dos@correo.falso.invalid", "primaryIndicator": false, "term": "209930" }
+      ],
+      "meetingsFaculty": [
+        { "category": "01", "class": "x", "courseReferenceNumber": "90002", "faculty": [], "term": "209930",
+          "meetingTime": { "beginTime": "1801", "building": "E01", "buildingDescription": "EDIF-01", "campus": "P", "campusDescription": "CAMPUS - PRUEBA",
+            "category": "01", "class": "x", "courseReferenceNumber": "90002", "creditHourSession": 5,
+            "endDate": "13-Dic-2099", "endTime": "2100", "friday": false, "hoursWeek": 6, "meetingScheduleType": "TEO", "meetingType": "CLAS",
+            "meetingTypeDescription": "CLASE", "monday": true, "room": "3", "saturday": false, "startDate": "01-Sep-2099", "sunday": false,
+            "term": "209930", "thursday": false, "tuesday": false, "wednesday": true } }
+      ],
+      "reservedSeatSummary": null, "sectionAttributes": [], "instructionalMethod": "TEO", "instructionalMethodDescription": "TEORIA"
+    },
+    {
+      "id": 900003, "term": "209930", "termDesc": "SEP-DIC 2099 GRADO", "courseReferenceNumber": "90003", "partOfTerm": "1",
+      "courseNumber": "200", "courseDisplay": "200", "subject": "XYZ", "subjectDescription": "MATERIA DE PRUEBA", "sequenceNumber": "1",
+      "campusDescription": "CAMPUS - PRUEBA", "scheduleTypeDescription": "VIRTUAL", "courseTitle": "SIN PROFESOR NI HORARIO",
+      "creditHours": null, "maximumEnrollment": 25, "enrollment": 0, "seatsAvailable": 25, "waitCapacity": 0, "waitCount": 0, "waitAvailable": 0,
+      "creditHourHigh": null, "creditHourLow": 3, "creditHourIndicator": null, "openSection": true, "linkIdentifier": null, "isSectionLinked": false,
+      "subjectCourse": "XYZ200",
+      "faculty": [],
+      "meetingsFaculty": [],
+      "reservedSeatSummary": null, "sectionAttributes": [], "instructionalMethod": "VIR", "instructionalMethodDescription": "VIRTUAL"
+    },
+    {
+      "id": 900004, "term": "209930", "termDesc": "SEP-DIC 2099 GRADO", "courseReferenceNumber": "90004", "partOfTerm": "1",
+      "courseNumber": "300", "courseDisplay": "300", "subject": "XYZ", "subjectDescription": "MATERIA DE PRUEBA", "sequenceNumber": "1",
+      "campusDescription": "CAMPUS - PRUEBA", "scheduleTypeDescription": "PRESENCIAL", "courseTitle": "S&Aacute;BADO Y DOMINGO",
+      "creditHours": null, "maximumEnrollment": 20, "enrollment": 5, "seatsAvailable": 15, "waitCapacity": 0, "waitCount": 0, "waitAvailable": 0,
+      "creditHourHigh": null, "creditHourLow": 4, "creditHourIndicator": null, "openSection": true, "linkIdentifier": null, "isSectionLinked": false,
+      "subjectCourse": "XYZ300",
+      "faculty": [
+        { "bannerId": 9999004, "category": null, "class": "x", "courseReferenceNumber": "90004", "displayName": "Juan  Nadie,   Prueba Tres",
+          "emailAddress": "profesor.falso.tres@correo.falso.invalid", "primaryIndicator": true, "term": "209930" }
+      ],
+      "meetingsFaculty": [
+        { "category": "01", "class": "x", "courseReferenceNumber": "90004", "faculty": [], "term": "209930",
+          "meetingTime": { "beginTime": "0801", "building": "E02", "buildingDescription": "EDIF-02", "campus": "P", "campusDescription": "CAMPUS - PRUEBA",
+            "category": "01", "class": "x", "courseReferenceNumber": "90004", "creditHourSession": 4,
+            "endDate": "13-Dic-2099", "endTime": "1200", "friday": false, "hoursWeek": 4, "meetingScheduleType": "TEO", "meetingType": "CLAS",
+            "meetingTypeDescription": "CLASE", "monday": false, "room": "7", "saturday": true, "startDate": "01-Ene-2099", "sunday": true,
+            "term": "209930", "thursday": false, "tuesday": false, "wednesday": false } }
+      ],
+      "reservedSeatSummary": null, "sectionAttributes": [], "instructionalMethod": "TEO", "instructionalMethodDescription": "TEORIA"
+    },
+    {
+      "id": 900005, "term": "209930", "termDesc": "SEP-DIC 2099 GRADO", "courseReferenceNumber": "90005", "partOfTerm": "1",
+      "courseNumber": "300", "courseDisplay": "300", "subject": "XYZ", "subjectDescription": "MATERIA DE PRUEBA", "sequenceNumber": "2",
+      "campusDescription": "CAMPUS - PRUEBA", "scheduleTypeDescription": "PRESENCIAL", "courseTitle": "S&Aacute;BADO Y DOMINGO",
+      "creditHours": null, "maximumEnrollment": 20, "enrollment": 5, "seatsAvailable": 15, "waitCapacity": 0, "waitCount": 0, "waitAvailable": 0,
+      "creditHourHigh": null, "creditHourLow": 4, "creditHourIndicator": null, "openSection": true, "linkIdentifier": null, "isSectionLinked": false,
+      "subjectCourse": "XYZ300",
+      "faculty": [],
+      "meetingsFaculty": [
+        { "category": "01", "class": "x", "courseReferenceNumber": "90005", "faculty": [], "term": "209930",
+          "meetingTime": { "beginTime": null, "building": null, "buildingDescription": null, "campus": null, "campusDescription": null,
+            "category": "01", "class": "x", "courseReferenceNumber": "90005", "creditHourSession": 4,
+            "endDate": "31-Dic-2099", "endTime": null, "friday": false, "hoursWeek": 0, "meetingScheduleType": "TEO", "meetingType": "CLAS",
+            "meetingTypeDescription": "CLASE", "monday": false, "room": null, "saturday": false, "startDate": "no-es-fecha", "sunday": false,
+            "term": "209930", "thursday": false, "tuesday": false, "wednesday": false } }
+      ],
+      "reservedSeatSummary": null, "sectionAttributes": [], "instructionalMethod": "TEO", "instructionalMethodDescription": "TEORIA"
+    }
+  ],
+  "pageOffset": 0,
+  "pageMaxSize": 50,
+  "sectionsFetchedCount": 5,
+  "pathMode": "search",
+  "searchResultsConfigs": []
+}

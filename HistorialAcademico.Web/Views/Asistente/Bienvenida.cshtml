@@ -1,0 +1,25 @@
+@model PasosViewModel
+@inject HistorialAcademico.Web.Perfiles.GestorPerfiles Gestor
+@{
+    ViewData["Title"] = "Bienvenido";
+    Layout = "_LayoutSimple";
+}
+
+<div class="acceso-tarjeta">
+    @if (TempData["Mensaje"] is string aviso) { <div class="alert alert-success" role="status" id="aviso-borrado">@aviso</div> }
+    <partial name="_Pasos" model="Model" />
+
+    <h1 class="h4">Bienvenido a Historial Académico</h1>
+    <p>Aquí ves tu histórico, tu avance en el pénsum y planificas los próximos cuatrimestres. Vamos a dejarla lista en cuatro pasos cortos.</p>
+
+    <h2 class="h6">Tu privacidad, primero</h2>
+    <ul class="asistente-privacidad">
+        <li>La aplicación corre <strong>en tu computadora</strong>. No hay servidor central: nada de lo que ves sale de aquí.</li>
+        <li>Inicias sesión <strong>tú mismo, en tu propio Banner</strong>, en una ventana del navegador. La aplicación nunca ve ni guarda tu usuario ni tu contraseña.</li>
+        <li>Tus datos y la sesión de Banner se guardan en una carpeta de tu usuario, fuera del proyecto: <code>@Gestor.Almacen.Raiz</code></li>
+        <li>Puedes proteger tu perfil con un PIN, y usar la aplicación sin conectar Banner.</li>
+        <li>Puedes llevarte una copia de tus datos o <strong>borrarlos todos</strong> cuando quieras, desde «Mis datos» en el menú.</li>
+    </ul>
+
+    <a class="btn btn-primary" asp-controller="Perfiles" asp-action="Crear">Empezar</a>
+</div>

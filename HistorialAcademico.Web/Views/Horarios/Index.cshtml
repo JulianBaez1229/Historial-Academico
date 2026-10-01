@@ -1,0 +1,333 @@
+@model HorariosViewModel
+@using HistorialAcademico.Web.Services
+@using HistorialAcademico.Core.Horarios
+@{
+    ViewData["Title"] = "Horarios de Banner";
+    ViewData["Pestana"] = "secciones";
+    var vista = Model.Vista;
+    var aqui = Context.Request.Path + Context.Request.QueryString;   // para volver a esta misma pantalla tras marcar/quitar
+    var periodoNombre = Model.Periodos.FirstOrDefault(p => p.Codigo == Model.Periodo)?.Nombre ?? Model.Periodo;
+    const string alConsultar = "var b = this.querySelector('button'); b.disabled = true; b.textContent = 'Consultando Banner…';";
+    const string alConsultarTodas = "var b = this.querySelector('button'); b.disabled = true; b.textContent = 'Iniciando…';";
+    var masiva = Model.Masiva;
+
+    string TextoItem(ItemLote i) => i.Resultado switch
+    {
+        ResultadoItem.ConSecciones => $"con secciones ({i.Secciones})",
+        ResultadoItem.SinSecciones => "sin secciones publicadas",
+        ResultadoItem.Error => "con error: " + i.Mensaje,
+        ResultadoItem.Omitida => "omitida",
+        _ => "pendiente",
+    };
+}
+
+@section Scripts {
+    <script src="~/js/horarios.js" asp-append-version="true"></script>
+}
+
+<h1 class="h3 mb-2">Horarios de Banner</h1>
+<partial name="_Pestanas" />
+<p class="text-muted">
+    Secciones que Banner tiene publicadas de las materias que te faltan: profesor, horario, aula y cupos.
+    Banner solo se consulta cuando pulsas el botón; si la sesión caducó se abre una ventana para que inicies sesión.
+</p>
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+@if (!Model.HayPensum || !Model.HayHistorico)
+{
+    <div class="alert alert-info">
+        Primero carga el pénsum y sincroniza tu histórico desde Banner (o <a asp-controller="MateriasManuales" asp-action="Index">registra tus materias a mano</a>) para saber qué materias te faltan.
+    </div>
+    return;
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label for="materia" class="form-label fw-semibold">Materia que te falta</label>
+                <select id="materia" name="materia" class="form-select" onchange="this.form.submit()">
+                    <option value="">— Elige una materia —</option>
+                    @foreach (var grupo in Model.Materias.GroupBy(m => m.Cuatrimestre).OrderBy(g => g.Key))
+                    {
+                        <optgroup label="Cuatrimestre @grupo.Key">
+                            @foreach (var m in grupo)
+                            {
+                                <option value="@m.Codigo" selected="@(m.Codigo == Model.Materia)">@m.Codigo · @m.Nombre</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="periodo" class="form-label fw-semibold">Período</label>
+                <select id="periodo" name="periodo" class="form-select" onchange="this.form.submit()">
+                    @foreach (var p in Model.Periodos)
+                    {
+                        <option value="@p.Codigo" selected="@(p.Codigo == Model.Periodo)">@p.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-secondary">Ver</button>
+            </div>
+        </form>
+        @if (Model.SinHorario.Count > 0)
+        {
+            <p class="small text-muted mt-2 mb-0">
+                No se consultan por horario: @string.Join(", ", Model.SinHorario.Select(m => m.Codigo)) (el trabajo final y la pasantía no tienen secciones con horario).
+            </p>
+        }
+    </div>
+</div>
+
+@* ── Panorama del período: las materias disponibles y lo que Banner tiene de cada una ───────────── *@
+<div class="card mb-3" id="panorama">
+    <div class="card-body">
+        <h2 class="h5 mb-1">Materias disponibles en @periodoNombre</h2>
+        <p class="text-muted small">Las que ya puedes inscribir porque cumples sus requisitos. Lo consultado queda guardado.</p>
+
+        @if (masiva is { Activa: true })
+        {
+            <div id="panel-progreso" data-activa="true" data-url="@Url.Action("Progreso")" class="mb-3" role="status" aria-live="polite">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <strong id="progreso-fase">@masiva.Fase</strong>
+                    <span id="progreso-cuenta" class="text-muted small">@masiva.Hechas de @masiva.Total materias</span>
+                </div>
+                <div class="progress my-2" style="height: 1.25rem;">
+                    <div id="barra-progreso" class="progress-bar" role="progressbar" style="width: @(masiva.Porcentaje)%;"
+                         aria-valuenow="@masiva.Porcentaje" aria-valuemin="0" aria-valuemax="100" aria-label="Avance de la consulta">@(masiva.Porcentaje)%</div>
+                </div>
+                <div id="progreso-actual" class="small text-muted">@(masiva.Actual is null ? "" : "Consultando ahora: " + masiva.Actual)</div>
+                <ul id="progreso-lista" class="small my-2">
+                    @foreach (var i in masiva.Items)
+                    {
+                        <li>@i.Codigo · @i.Nombre — @TextoItem(i)</li>
+                    }
+                </ul>
+                <form asp-action="Cancelar" method="post">
+                    <input type="hidden" name="periodo" value="@Model.Periodo" />
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Cancelar la consulta</button>
+                </form>
+            </div>
+        }
+        else if (masiva is { Terminada: true })
+        {
+            <div id="resumen-consulta" class="alert @(masiva.Cancelada ? "alert-info" : masiva.Exito && masiva.ConError == 0 ? "alert-success" : "alert-danger") mb-3" role="status">
+                <strong>@(masiva.Cancelada ? "Consulta cancelada" : masiva.Exito ? "Consulta terminada" : "Consulta detenida")</strong>
+                <div>@masiva.Mensaje</div>
+                @if (masiva.Items.Any(i => i.Resultado == ResultadoItem.Error))
+                {
+                    <ul class="small mb-0 mt-1">
+                        @foreach (var i in masiva.Items.Where(i => i.Resultado == ResultadoItem.Error))
+                        {
+                            <li>@i.Codigo: @i.Mensaje</li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+
+        @if (Model.Panorama.Count == 0)
+        {
+            <p class="text-muted mb-0">No tienes materias disponibles que consultar por horario.</p>
+        }
+        else
+        {
+            <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle mb-0" id="tabla-panorama">
+                    <thead><tr><th>Materia</th><th>En Banner</th><th>Última consulta</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var f in Model.Panorama)
+                    {
+                        <tr>
+                            <td><span class="fw-semibold">@f.Codigo</span> <span class="text-muted">@f.Nombre</span></td>
+                            <td>
+                                @switch (f.Estado)
+                                {
+                                    case EstadoPanorama.ConSecciones: <span class="badge bg-success">@f.Secciones @(f.Secciones == 1 ? "sección" : "secciones")</span> break;
+                                    case EstadoPanorama.SinSecciones: <span class="badge bg-secondary">Sin secciones publicadas</span> break;
+                                    default: <span class="text-muted">Sin consultar</span> break;
+                                }
+                            </td>
+                            <td class="small text-muted">@(f.Consultada is null ? "—" : Ui.FechaHora(f.Consultada.Value))</td>
+                            <td class="text-end"><a asp-action="Index" asp-route-materia="@f.Codigo" asp-route-periodo="@Model.Periodo">Ver</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <form asp-action="ConsultarTodas" method="post" class="d-flex flex-wrap align-items-center gap-3" onsubmit="@alConsultarTodas">
+                <input type="hidden" name="periodo" value="@Model.Periodo" />
+                <button type="submit" class="btn btn-primary" disabled="@(masiva is { Activa: true })">Consultar todas las disponibles</button>
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="omitir" name="omitirConsultadas" value="true" />
+                    <label class="form-check-label" for="omitir">Omitir las que ya consulté en este período</label>
+                </div>
+                <span class="form-text">Van una detrás de otra, con una pausa entre cada una; si la sesión caducó se abre una ventana para iniciar sesión.</span>
+            </form>
+        }
+    </div>
+</div>
+
+@if (vista is null)
+{
+    <div class="card"><div class="card-body text-muted">Elige una materia y un período para ver sus secciones.</div></div>
+    return;
+}
+
+@if (Model.Previa.Count > 0)
+{
+    <p class="mb-3" id="oferta-previa">
+        <strong>@vista.Codigo</strong> se ofreció en
+        @string.Join(", ", Model.Previa.Select(o => o.PeriodoNombre)).
+    </p>
+}
+
+@if (Model.Profesores.Count > 0)
+{
+    <div class="card mb-3" id="profesores-previos">
+        <div class="card-body">
+            <h2 class="h5">Profesores que han dado @vista.Codigo</h2>
+            <p class="small text-muted">Según lo que has consultado en Banner (solo el nombre publicado y los períodos en que aparece).</p>
+            <ul class="mb-0">
+                @foreach (var p in Model.Profesores)
+                {
+                    <li><span class="fw-semibold">@p.Nombre</span> <span class="text-muted">· @string.Join(", ", p.Periodos)</span></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@{ var marcada = Model.AperturaMarcadas.Contains(vista.Codigo); }
+@if (vista.SinSecciones || marcada)
+{
+    <div class="card mb-3" id="apertura-materia">
+        <div class="card-body">
+            @if (marcada)
+            {
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span><strong>@vista.Codigo</strong> está marcada para solicitar su apertura.</span>
+                    <a asp-action="Apertura" asp-route-periodo="@Model.Periodo">Ver la lista</a>
+                    <form asp-action="QuitarApertura" method="post" class="ms-auto">
+                        <input type="hidden" name="codigo" value="@vista.Codigo" /><input type="hidden" name="volverA" value="@aqui" />
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Quitar de la lista</button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <form asp-action="MarcarApertura" method="post" class="row g-2 align-items-end">
+                    <input type="hidden" name="codigo" value="@vista.Codigo" /><input type="hidden" name="volverA" value="@aqui" />
+                    <div class="col-md-8">
+                        <label for="notaApertura" class="form-label mb-1">¿La necesitas? Recuérdate pedir que abran <strong>@vista.Codigo</strong></label>
+                        <input id="notaApertura" name="nota" class="form-control" maxlength="@AperturaService.MaxNota" placeholder="Nota (opcional)" />
+                    </div>
+                    <div class="col-md-4 d-grid"><button type="submit" class="btn btn-outline-secondary">Solicitar apertura</button></div>
+                </form>
+            }
+        </div>
+    </div>
+}
+
+@if (!vista.YaConsultada)
+{
+    <div class="card">
+        <div class="card-body">
+            <h2 class="h5">Aún no has consultado @vista.Codigo en @periodoNombre</h2>
+            <p class="text-muted">Lo que se consulte queda guardado, así que puedes volver a verlo sin conectarte a Banner.</p>
+            <form asp-action="Consultar" method="post" onsubmit="@alConsultar">
+                <input type="hidden" name="materia" value="@vista.Codigo" />
+                <input type="hidden" name="periodo" value="@Model.Periodo" />
+                <button type="submit" class="btn btn-primary">Consultar en Banner</button>
+            </form>
+        </div>
+    </div>
+    return;
+}
+
+@if (vista.SinSecciones)
+{
+    <div class="card" id="sin-secciones">
+        <div class="card-body">
+            <h2 class="h5">Sin secciones publicadas por ahora</h2>
+            <p class="text-muted mb-2">
+                Banner no tiene secciones de <strong>@vista.Codigo</strong> para @vista.PeriodoNombre. Es normal: la universidad las publica
+                a medida que se acerca la inscripción, y algunas materias no se abren todos los períodos.
+            </p>
+            <p class="small text-muted">Última consulta: @Ui.FechaHora(vista.Consultada!.Value).</p>
+            <div class="d-flex flex-wrap gap-2">
+                <form asp-action="Consultar" method="post" onsubmit="@alConsultar">
+                    <input type="hidden" name="materia" value="@vista.Codigo" />
+                    <input type="hidden" name="periodo" value="@Model.Periodo" />
+                    <button type="submit" class="btn btn-primary">Consultar de nuevo</button>
+                </form>
+                <form asp-action="BuscarAnteriores" method="post" onsubmit="@alConsultar">
+                    <input type="hidden" name="materia" value="@vista.Codigo" />
+                    <input type="hidden" name="periodo" value="@Model.Periodo" />
+                    <button type="submit" class="btn btn-outline-secondary">Ver cuándo se ofreció antes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    return;
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <h2 class="h5 mb-0">@vista.Codigo en @vista.PeriodoNombre</h2>
+    <span class="text-muted small">@vista.Secciones.Count secciones · consultado el @Ui.FechaHora(vista.Consultada!.Value)</span>
+    <form asp-action="Consultar" method="post" class="ms-auto" onsubmit="@alConsultar">
+        <input type="hidden" name="materia" value="@vista.Codigo" />
+        <input type="hidden" name="periodo" value="@Model.Periodo" />
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Consultar de nuevo</button>
+    </form>
+</div>
+
+<div class="card" id="tabla-secciones">
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Materia</th><th>Sec.</th><th>NRC</th><th>Profesor</th><th>Horario</th><th>Modalidad</th><th class="text-end">Cupos</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var s in vista.Secciones)
+            {
+                <tr>
+                    <td>
+                        <div class="fw-semibold">@s.Codigo</div>
+                        <div class="small text-muted">@Ui.TituloBonito(s.Titulo) · @Ui.Num(s.Creditos) créd.</div>
+                    </td>
+                    <td>@s.Seccion</td>
+                    <td class="text-muted">@s.Nrc</td>
+                    <td>
+                        @if (s.Profesores.Count == 0) { <span class="text-muted">Sin asignar</span> }
+                        else { @string.Join("; ", s.Profesores) }
+                    </td>
+                    <td>
+                        @if (s.Bloques.Count == 0) { <span class="text-muted">Sin horario publicado</span> }
+                        @foreach (var b in s.Bloques) { <div class="small">@Ui.Bloque(b)</div> }
+                    </td>
+                    <td class="small">@Ui.TituloBonito(s.Metodo)<div class="text-muted">@Ui.TituloBonito(s.Campus)</div></td>
+                    <td class="text-end">
+                        @if (s.SinCupoAsignado)
+                        {
+                            <span class="badge bg-secondary">Sin cupo asignado</span>
+                        }
+                        else
+                        {
+                            <span class="badge @(s.Llena ? "bg-danger" : "bg-success")">@(s.Llena ? "Llena" : s.CuposDisponibles + " libres")</span>
+                            <div class="small text-muted">@s.Inscritos de @s.CupoMaximo</div>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,295 @@
+/*
+ * Tema de la aplicación: TODOS los colores viven aquí, como variables CSS.
+ * Paleta propia de azul marino y dorado (docs/branding/paleta.md). Cambiar de tema = cambiar solo este archivo.
+ *
+ * Hay dos temas con los MISMOS nombres de token: el claro (:root) y el oscuro (:root[data-tema="oscuro"]).
+ * El atributo data-tema lo pone un script al inicio de <head> (antes de pintar) según la elección del usuario
+ * (claro, oscuro o "sistema", que sigue prefers-color-scheme) y el interruptor de la barra superior.
+ *
+ * Cada par texto/fondo cumple WCAG AA (contraste ≥ 4.5:1) en AMBOS temas; lo comprueban las pruebas TemaContrasteTests
+ * y una auditoría de contraste sobre las páginas reales. El dorado no se usa como color de texto sobre fondo claro.
+ * En el tema oscuro los colores de acento son claros, así que el texto que va encima ("sobre-*") es oscuro.
+ */
+:root {
+  color-scheme: light;
+
+  /* ── Marca ─────────────────────────────────────────────────────────────── */
+  --color-primario: #1B2A7E;          /* azul marino */
+  --color-primario-oscuro: #131E5C;   /* estado hover/activo de lo primario */
+  --color-primario-suave: #E8EBF7;
+  --color-acento: #C4A23A;            /* dorado */
+  --color-acento-oscuro: #A88820;
+  --color-peligro: #D0202E;           /* rojo */
+  --color-info: #3A6EA5;              /* azul acero */
+  --color-exito: #146C43;
+  --color-alerta: #C4A23A;
+  --color-alerta-texto: #7A5F0C;      /* dorado oscuro: seguro como texto sobre fondo claro */
+
+  /* ── Superficies y texto ───────────────────────────────────────────────── */
+  --color-fondo: #F4F6FB;
+  --color-superficie: #FFFFFF;
+  --color-superficie-2: #F1F3FA;      /* encabezados de tarjeta, filas destacadas */
+  --color-texto: #1A1F36;
+  --color-texto-suave: #4A5170;
+  --color-borde: #D5DAEA;
+  --color-codigo: #9C2668;
+  --color-sobre-primario: #FFFFFF;    /* texto sobre azul marino, rojo, azul acero y verde */
+  --color-sobre-acento: #1B2A7E;      /* texto sobre dorado */
+  --color-fila-hover: rgba(27, 42, 126, .06);
+
+  /* ── Menú lateral ──────────────────────────────────────────────────────── */
+  --color-menu-fondo: #1B2A7E;
+  --color-menu-texto: #FFFFFF;
+  --color-menu-suave: #C9D0F0;
+  --color-menu-hover: rgba(255, 255, 255, .12);
+  --color-menu-activo-fondo: #C4A23A;
+  --color-menu-activo-texto: #1B2A7E;
+
+  /* ── Estados de las materias (fondo, borde y texto) ───────────────────── */
+  --estado-aprobada-fondo: #DDF1E6;   --estado-aprobada-borde: #146C43;   --estado-aprobada-texto: #0B4A2C;
+  --estado-exenta-fondo: #DCEAF7;     --estado-exenta-borde: #3A6EA5;     --estado-exenta-texto: #1F4468;
+  --estado-encurso-fondo: #DDE1F5;    --estado-encurso-borde: #1B2A7E;    --estado-encurso-texto: #131E5C;
+  --estado-disponible-fondo: #FBF1CC; --estado-disponible-borde: #A88820; --estado-disponible-texto: #5E4A08;
+  --estado-bloqueada-fondo: #ECEEF4;  --estado-bloqueada-borde: #7A83A6;  --estado-bloqueada-texto: #3E4560;
+
+  /* ── Avisos (alert-*)──────────────────────────────────────────────────── */
+  --aviso-exito-fondo: #DDF1E6;       --aviso-exito-texto: #0B4A2C;       --aviso-exito-borde: #A9D8BF;
+  --aviso-info-fondo: #DCEAF7;        --aviso-info-texto: #1F4468;        --aviso-info-borde: #A9C6E4;
+  --aviso-peligro-fondo: #FBE0E3;     --aviso-peligro-texto: #7A1420;     --aviso-peligro-borde: #F0B2B9;
+  --aviso-alerta-fondo: #FBF1CC;      --aviso-alerta-texto: #5E4A08;      --aviso-alerta-borde: #E8D488;
+  --aviso-neutro-fondo: #ECEEF4;      --aviso-neutro-texto: #3E4560;      --aviso-neutro-borde: #C9CFE0;
+
+  /* ── Gráficos (dona y líneas) ──────────────────────────────────────────── */
+  --grafico-aprobada: var(--color-exito);
+  --grafico-encurso: var(--color-info);
+  --grafico-faltante: var(--estado-bloqueada-borde);
+  --grafico-periodo: var(--color-primario);
+  --grafico-acumulado: var(--color-acento-oscuro);
+  --grafico-rejilla: var(--color-borde);
+
+  /* ── Resaltado del mapa del pénsum (requisitos y materias que desbloquea) ── */
+  --mapa-requisito-fondo: var(--color-primario);
+  --mapa-requisito-texto: var(--color-sobre-primario);
+  --mapa-desbloquea-fondo: var(--color-acento);
+  --mapa-desbloquea-texto: var(--color-sobre-acento);
+
+  /* ── Movimiento y relieve ──────────────────────────────────────────────── */
+  --transicion-rapida: 200ms;
+  --transicion-menu: 250ms;
+  --sombra-suave: 0 1px 2px rgba(26, 31, 54, .08);
+  --sombra-elevada: 0 6px 16px rgba(26, 31, 54, .16);
+  --color-velo: rgba(26, 31, 54, .55);   /* fondo oscurecido detrás de paneles y avisos */
+  --color-foco-sombra: rgba(58, 110, 165, .3);
+  --radio: .5rem;
+
+  /* Adornos que cambian con el tema: flecha de los <select> y botón de cerrar. */
+  --flecha-select: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%231A1F36' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  --filtro-cerrar: none;
+
+  /* ── Bootstrap: se reasignan sus variables a los tokens de arriba ───────── */
+  --bs-primary: var(--color-primario);
+  --bs-primary-rgb: 27, 42, 126;
+  --bs-success: var(--color-exito);
+  --bs-success-rgb: 20, 108, 67;
+  --bs-danger: var(--color-peligro);
+  --bs-danger-rgb: 208, 32, 46;
+  --bs-warning: var(--color-alerta);
+  --bs-warning-rgb: 196, 162, 58;
+  --bs-info: var(--color-info);
+  --bs-info-rgb: 58, 110, 165;
+  --bs-secondary-rgb: 74, 81, 112;
+  --bs-body-color: var(--color-texto);
+  --bs-body-bg: var(--color-fondo);
+  --bs-border-color: var(--color-borde);
+}
+
+/* ══ Tema oscuro ═══════════════════════════════════════════════════════════════
+ * Mismos nombres de token. Los acentos se aclaran (sobre fondo oscuro un azul marino no se ve),
+ * por eso el texto que va encima de ellos (--color-sobre-*) pasa a ser oscuro. */
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+
+  --color-primario: #9FB0FF;
+  --color-primario-oscuro: #C3CDFF;
+  --color-primario-suave: #232B52;
+  --color-acento: #C4A23A;
+  --color-acento-oscuro: #E0C060;
+  --color-peligro: #FF6B78;
+  --color-info: #6FA8E8;
+  --color-exito: #4CC38A;
+  --color-alerta: #C4A23A;
+  --color-alerta-texto: #E6C45A;
+
+  --color-fondo: #0E1223;
+  --color-superficie: #171D36;
+  --color-superficie-2: #1E2543;
+  --color-texto: #E8EBF7;
+  --color-texto-suave: #AEB6D6;
+  --color-borde: #2D3559;
+  --color-codigo: #F2A8D0;
+  --color-sobre-primario: #0E1223;
+  --color-sobre-acento: #0E1223;
+  --color-fila-hover: rgba(159, 176, 255, .10);
+
+  --color-menu-fondo: #0A0E24;
+  --color-menu-texto: #E8EBF7;
+  --color-menu-suave: #AEB6D6;
+  --color-menu-hover: rgba(255, 255, 255, .08);
+  --color-menu-activo-fondo: #C4A23A;
+  --color-menu-activo-texto: #0E1223;
+
+  --estado-aprobada-fondo: #12362A;   --estado-aprobada-borde: #4CC38A;   --estado-aprobada-texto: #BDEBD3;
+  --estado-exenta-fondo: #16324F;     --estado-exenta-borde: #6FA8E8;     --estado-exenta-texto: #CDE3FA;
+  --estado-encurso-fondo: #232B5A;    --estado-encurso-borde: #9FB0FF;    --estado-encurso-texto: #D5DCFF;
+  --estado-disponible-fondo: #4A3F14; --estado-disponible-borde: #E0C060; --estado-disponible-texto: #F5E7B0;
+  --estado-bloqueada-fondo: #232842;  --estado-bloqueada-borde: #7A83A6;  --estado-bloqueada-texto: #C3C9E2;
+
+  --aviso-exito-fondo: #12362A;       --aviso-exito-texto: #BDEBD3;       --aviso-exito-borde: #24634A;
+  --aviso-info-fondo: #16324F;        --aviso-info-texto: #CDE3FA;        --aviso-info-borde: #2E5B8A;
+  --aviso-peligro-fondo: #4A1D26;     --aviso-peligro-texto: #FFC9CF;     --aviso-peligro-borde: #7E3340;
+  --aviso-alerta-fondo: #4A3F14;      --aviso-alerta-texto: #F5E7B0;      --aviso-alerta-borde: #7A6822;
+  --aviso-neutro-fondo: #232842;      --aviso-neutro-texto: #C3C9E2;      --aviso-neutro-borde: #3C4468;
+
+  --sombra-suave: 0 1px 2px rgba(0, 0, 0, .45);
+  --sombra-elevada: 0 6px 16px rgba(0, 0, 0, .6);
+  --color-velo: rgba(0, 0, 0, .65);
+  --color-foco-sombra: rgba(111, 168, 232, .4);
+
+  --flecha-select: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23E8EBF7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  --filtro-cerrar: invert(1) grayscale(100%) brightness(200%);
+
+  --bs-primary-rgb: 159, 176, 255;
+  --bs-success-rgb: 76, 195, 138;
+  --bs-danger-rgb: 255, 107, 120;
+  --bs-warning-rgb: 196, 162, 58;
+  --bs-info-rgb: 111, 168, 232;
+  --bs-secondary-rgb: 122, 131, 166;
+}
+
+/*
+ * ── Bootstrap: componentes con los colores del tema ───────────────────────────
+ * El Bootstrap incluido (5.1) trae colores fijos (blanco, gris…) que no cambian con el tema, así que se reasignan
+ * aquí con propiedades directas. Funciona igual si más adelante se actualiza a una versión más nueva.
+ */
+body { background-color: var(--color-fondo); color: var(--color-texto); }
+
+a { color: var(--color-primario); }
+a:hover { color: var(--color-primario-oscuro); }
+hr { color: var(--color-borde); opacity: 1; }
+code { color: var(--color-codigo); }
+
+.card, .modal-content, .list-group-item {
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+  border-color: var(--color-borde);
+}
+.card-header, .card-footer { background-color: var(--color-superficie-2); border-color: var(--color-borde); color: var(--color-texto); }
+.modal-header, .modal-footer { border-color: var(--color-borde); }
+.btn-close { filter: var(--filtro-cerrar); }
+
+.table { color: var(--color-texto); border-color: var(--color-borde); }
+.table-light { --bs-table-bg: var(--color-superficie-2); color: var(--color-texto); border-color: var(--color-borde); }
+.table-hover > tbody > tr:hover > * { --bs-table-accent-bg: var(--color-fila-hover); color: var(--color-texto); }
+
+.form-control, .form-select, .input-group-text {
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+  border-color: var(--color-borde);
+}
+/* Campos de solo lectura o deshabilitados: Bootstrap los pinta con un gris claro fijo que en el tema oscuro deja el texto ilegible. */
+.form-control[readonly], .form-control:disabled, .form-select:disabled { background-color: var(--color-superficie-2); color: var(--color-texto); opacity: 1; }
+.btn-link { color: var(--color-primario); }
+.btn-link:hover, .btn-link:focus { color: var(--color-primario-oscuro); }
+.form-select { background-image: var(--flecha-select); }
+.form-control::placeholder { color: var(--color-texto-suave); opacity: 1; }
+.form-check-input { background-color: var(--color-superficie); border-color: var(--color-texto-suave); }
+.form-check-input:checked { background-color: var(--color-primario); border-color: var(--color-primario); }
+.form-control:focus, .form-select:focus {
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+  border-color: var(--color-info);
+  box-shadow: 0 0 0 .25rem var(--color-foco-sombra);
+}
+
+.progress { background-color: var(--color-borde); }
+.progress-bar { color: var(--color-sobre-primario); background-color: var(--color-primario); }
+.form-text { color: var(--color-texto-suave); }
+.breadcrumb-item.active, .breadcrumb-item + .breadcrumb-item::before { color: var(--color-texto-suave); }
+
+.alert-success { color: var(--aviso-exito-texto); background-color: var(--aviso-exito-fondo); border-color: var(--aviso-exito-borde); }
+.alert-info { color: var(--aviso-info-texto); background-color: var(--aviso-info-fondo); border-color: var(--aviso-info-borde); }
+.alert-danger { color: var(--aviso-peligro-texto); background-color: var(--aviso-peligro-fondo); border-color: var(--aviso-peligro-borde); }
+.alert-warning { color: var(--aviso-alerta-texto); background-color: var(--aviso-alerta-fondo); border-color: var(--aviso-alerta-borde); }
+.alert-secondary { color: var(--aviso-neutro-texto); background-color: var(--aviso-neutro-fondo); border-color: var(--aviso-neutro-borde); }
+.alert a, .alert .alert-link { color: inherit; font-weight: 600; text-decoration: underline; }
+
+/* ── Botones ──────────────────────────────────────────────────────────────── */
+.btn-primary, .btn-primary:disabled, .btn-primary.disabled {
+  color: var(--color-sobre-primario);
+  background-color: var(--color-primario);
+  border-color: var(--color-primario);
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active,
+.btn-check:checked + .btn-primary, .btn-check:active + .btn-primary {
+  color: var(--color-sobre-primario);
+  background-color: var(--color-primario-oscuro);
+  border-color: var(--color-primario-oscuro);
+}
+
+.btn-outline-primary { color: var(--color-primario); border-color: var(--color-primario); }
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active, .btn-outline-primary.active {
+  color: var(--color-sobre-primario);
+  background-color: var(--color-primario);
+  border-color: var(--color-primario);
+}
+
+.btn-outline-danger { color: var(--color-peligro); border-color: var(--color-peligro); }
+.btn-outline-danger:hover, .btn-outline-danger:focus, .btn-outline-danger:active {
+  color: var(--color-sobre-primario);
+  background-color: var(--color-peligro);
+  border-color: var(--color-peligro);
+}
+
+.btn-outline-secondary { color: var(--color-texto-suave); border-color: var(--color-texto-suave); }
+.btn-outline-secondary:hover, .btn-outline-secondary:focus, .btn-outline-secondary:active {
+  color: var(--color-sobre-primario);
+  background-color: var(--color-texto-suave);
+  border-color: var(--color-texto-suave);
+}
+
+.nav-pills .nav-link { color: var(--color-primario); }
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: var(--color-sobre-primario);
+  background-color: var(--color-primario);
+}
+
+.progress-bar.bg-success { background-color: var(--color-exito) !important; }
+.progress-bar.bg-primary { background-color: var(--color-info) !important; }
+
+/* ── Utilidades de color ──────────────────────────────────────────────────── */
+.text-warning { color: var(--color-alerta-texto) !important; }
+.text-success { color: var(--color-exito) !important; }
+.text-danger { color: var(--color-peligro) !important; }
+.text-primary { color: var(--color-primario) !important; }
+.text-muted { color: var(--color-texto-suave) !important; }
+.text-dark, .text-body { color: var(--color-texto) !important; }
+.text-white { color: var(--color-sobre-primario) !important; }   /* solo se usa sobre fondos de acento */
+.bg-light { background-color: var(--color-superficie-2) !important; }
+.border, .border-top, .border-bottom { border-color: var(--color-borde) !important; }
+
+/* Píldoras: el texto siempre contrasta con su fondo, en ambos temas. */
+.badge.bg-primary, .badge.bg-success, .badge.bg-danger, .badge.bg-info, .badge.bg-secondary { color: var(--color-sobre-primario) !important; }
+.badge.bg-warning, .badge.bg-warning.text-dark { color: var(--color-sobre-acento) !important; }
+.badge.bg-light { background-color: var(--color-superficie) !important; color: var(--color-texto) !important; }
+
+/* ── Movimiento reducido: sin animaciones ni transiciones ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:hover, a.card:hover, .tarjeta-elevable:hover, .plan-card:hover, .mapa-card:hover {
+    transform: none !important;
+  }
+}

@@ -1,0 +1,478 @@
+@model EstadoPlanificador
+@using HistorialAcademico.Core.Planificacion
+@using HistorialAcademico.Web.Services
+@inject HorarioTentativoService HorariosTentativos
+@{
+    ViewData["Title"] = "Planificador";
+    ViewData["Pestana"] = "plan";
+    var ctx = Model.Contexto;
+    var ev = Model.Evaluacion;
+    var actual = Model.Actual!;
+    var mensaje = TempData["Mensaje"] as string;
+    var error = TempData["Error"] as string;
+    var conMaterias = Model.Plan.Any(p => p.Codigos.Count > 0);
+
+    string ClaseCredito(EvaluacionPeriodo? p) => p is null ? "bg-light text-dark border"
+        : p.SobreLimite ? "bg-danger" : p.BajoMinimo ? "bg-warning text-dark" : "bg-success";
+}
+
+<h1 class="h3 mb-3">Planificador de cuatrimestres</h1>
+<partial name="_Pestanas" />
+
+@if (mensaje is not null) { <div class="alert alert-success">@mensaje</div> }
+@if (error is not null) { <div class="alert alert-danger">@error</div> }
+
+@if (Model.Avisos.Count > 0)
+{
+    <div class="alert alert-info" id="avisos-plan" role="status">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <strong>Tu plan cambió desde la última vez que lo miraste</strong>
+            <form asp-action="DescartarAvisos" method="post">
+                <input type="hidden" name="id" value="@actual.Id" />
+                <button type="submit" class="btn btn-sm btn-outline-secondary" id="btn-entendido">Entendido</button>
+            </form>
+        </div>
+        <ul class="mb-0 mt-2">
+            @foreach (var aviso in Model.Avisos)
+            {
+                <li><strong>@aviso.PlanNombre</strong> <span class="small">· @Ui.FechaHora(aviso.Fecha)</span><br />@aviso.Texto</li>
+            }
+        </ul>
+    </div>
+}
+
+@{ var horariosAsociados = await HorariosTentativos.DelPlanAsync(actual.Id); }
+@if (horariosAsociados.Count > 0)
+{
+    <p class="small text-muted" id="horarios-asociados">
+        Horarios tentativos de este escenario:
+        @foreach (var h in horariosAsociados)
+        {
+            <a asp-controller="Horarios" asp-action="Tentativo" asp-route-id="@h.Id">@h.Nombre</a>
+            <span>(@HorariosService.NombreDePeriodo(h.Periodo), @h.Secciones.Count @(h.Secciones.Count == 1 ? "sección" : "secciones"))</span>@(h == horariosAsociados[^1] ? "" : ",")
+        }
+    </p>
+}
+
+@* ── Escenarios ─────────────────────────────────────────────────────────────────── *@
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <form method="get" asp-action="Index" class="d-flex align-items-center gap-2">
+                <label for="planId" class="fw-semibold mb-0">Escenario:</label>
+                <select id="planId" name="id" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    @foreach (var p in Model.Planes)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == actual.Id)">@p.Nombre</option>
+                    }
+                </select>
+            </form>
+            @if (actual.Activo) { <span class="badge bg-success" id="plan-activo" title="La fecha de graduación del inicio sale de este plan">Plan activo</span> }
+            <form asp-action="Activar" method="post" class="d-inline">
+                <input type="hidden" name="id" value="@actual.Id" />
+                <button class="btn btn-sm btn-outline-secondary" type="submit" id="btn-activar">@(actual.Activo ? "Quitar de activo" : "Marcar como plan activo")</button>
+            </form>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#gestionEscenarios">Gestionar escenarios</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#configPlan">Configuración</button>
+            @if (ctx is not null)
+            {
+                <div class="btn-group btn-group-sm ms-auto" role="group" aria-label="Exportar el plan" id="exportar-plan">
+                    <a class="btn btn-outline-secondary" asp-action="Exportar" asp-route-id="@actual.Id" asp-route-formato="pdf" title="Un PDF de una página para llevarlo a tu asesor">Exportar PDF</a>
+                    <a class="btn btn-outline-secondary" asp-action="Exportar" asp-route-id="@actual.Id" asp-route-formato="png" title="Una imagen para compartir">Exportar imagen</a>
+                    <a class="btn btn-outline-secondary" asp-action="Imprimible" asp-route-id="@actual.Id" target="_blank" rel="noopener" title="La hoja del plan, lista para imprimir">Imprimir</a>
+                </div>
+                <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#generarPlan"
+                        aria-expanded="false" aria-controls="generarPlan">Generar plan sugerido…</button>
+            }
+        </div>
+
+        @if (ctx is not null && Model.Previsiones.Count > 0)
+        {
+            <div class="collapse mt-3" id="generarPlan">
+                <form asp-action="Generar" method="post" id="form-generar"
+                      onsubmit="@(conMaterias ? "return confirm('Esto reemplaza lo que hay en este plan por el plan sugerido. ¿Continuar?');" : "return true;")">
+                    <input type="hidden" name="id" value="@actual.Id" />
+                    <div class="row g-3">
+                        <fieldset class="col-lg-7">
+                            <legend class="h6">¿Qué carga quieres llevar?</legend>
+                            @foreach (var pv in Model.Previsiones)
+                            {
+                                var nombreCarga = pv.Carga switch { CargaDeseada.Ligera => "Ligera", CargaDeseada.Normal => "Normal", _ => "Pesada" };
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="carga" id="carga-@pv.Carga" value="@pv.Carga.ToString().ToLowerInvariant()" checked="@(pv.Carga == CargaDeseada.Normal)" />
+                                    <label class="form-check-label" for="carga-@pv.Carga">
+                                        <strong>@nombreCarga</strong> · hasta @pv.Limite créditos por período ·
+                                        @pv.Cuatrimestres @(pv.Cuatrimestres == 1 ? "cuatrimestre" : "cuatrimestres")@(pv.Graduacion is { } g ? $" · te graduarías en {g.Nombre}" : "")
+                                    </label>
+                                </div>
+                            }
+                            <div class="form-text">Las fechas suponen que estudias todos los períodos; si marcas alguno abajo, se corren.</div>
+                        </fieldset>
+                        <fieldset class="col-lg-5">
+                            <legend class="h6">¿Hay períodos en los que no vas a estudiar?</legend>
+                            @foreach (var per in Model.PeriodosOmitibles)
+                            {
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="omitir" id="omitir-@per.Nombre.Replace(' ', '-')" value="@per.Nombre" />
+                                    <label class="form-check-label" for="omitir-@per.Nombre.Replace(' ', '-')">@per.Nombre</label>
+                                </div>
+                            }
+                        </fieldset>
+                    </div>
+                    <div class="mt-3 d-flex flex-wrap align-items-center gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Generar plan</button>
+                        <span class="small text-muted">Cada materia del plan dice por qué va ahí, y después puedes moverlas en el tablero.</span>
+                    </div>
+                </form>
+            </div>
+        }
+
+        <div class="collapse mt-3" id="gestionEscenarios">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <form asp-action="GuardarComo" method="post" class="input-group input-group-sm">
+                        <input type="hidden" name="id" value="@actual.Id" />
+                        <input name="nombre" class="form-control" placeholder="Guardar copia como… (ej. Carga pesada)" maxlength="60" required />
+                        <button class="btn btn-outline-primary" type="submit">Guardar como</button>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <form asp-action="Crear" method="post" class="input-group input-group-sm">
+                        <input name="nombre" class="form-control" placeholder="Nuevo plan vacío" maxlength="60" required />
+                        <button class="btn btn-outline-primary" type="submit">Crear</button>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <form asp-action="Renombrar" method="post" class="input-group input-group-sm">
+                        <input type="hidden" name="id" value="@actual.Id" />
+                        <input name="nombre" class="form-control" value="@actual.Nombre" maxlength="60" required />
+                        <button class="btn btn-outline-secondary" type="submit">Renombrar</button>
+                    </form>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <form asp-action="Limpiar" method="post" onsubmit="return confirm('¿Vaciar este plan?');">
+                        <input type="hidden" name="id" value="@actual.Id" />
+                        <button class="btn btn-sm btn-outline-secondary" type="submit">Vaciar plan</button>
+                    </form>
+                    @if (Model.Planes.Count > 1)
+                    {
+                        <form asp-action="Eliminar" method="post" onsubmit="return confirm('¿Eliminar el escenario «@actual.Nombre»?');">
+                            <input type="hidden" name="id" value="@actual.Id" />
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar este escenario</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="collapse mt-3" id="configPlan">
+            <form asp-action="Configurar" method="post" class="row g-2 align-items-end">
+                <input type="hidden" name="id" value="@actual.Id" />
+                <div class="col-6 col-md-2"><label class="form-label small mb-0" for="limiteBase">Límite de créditos</label>
+                    <input id="limiteBase" name="limiteBase" type="number" min="1" max="60" class="form-control form-control-sm" value="@Model.Config.LimiteBase" /></div>
+                <div class="col-6 col-md-2"><label class="form-label small mb-0" for="limiteAlto">Límite con índice alto</label>
+                    <input id="limiteAlto" name="limiteAlto" type="number" min="1" max="60" class="form-control form-control-sm" value="@Model.Config.LimiteAlto" /></div>
+                <div class="col-6 col-md-2"><label class="form-label small mb-0" for="umbralIndice">Índice mayor que</label>
+                    <input id="umbralIndice" name="umbralIndice" type="number" step="0.01" min="0" max="4" class="form-control form-control-sm" value="@Model.Config.UmbralIndice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" /></div>
+                <div class="col-6 col-md-2"><label class="form-label small mb-0" for="minimo">Mínimo de créditos</label>
+                    <input id="minimo" name="minimo" type="number" min="0" max="60" class="form-control form-control-sm" value="@Model.Config.Minimo" /></div>
+                <div class="col-12 col-md-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="asumirEnCurso" name="asumirEnCurso" value="true" @(Model.Config.AsumirEnCurso ? "checked" : "") />
+                        <label class="form-check-label small" for="asumirEnCurso">Asumir que apruebo los cursos en progreso</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-1"><button class="btn btn-sm btn-primary w-100" type="submit">Guardar</button></div>
+            </form>
+            <div class="form-text mt-2">
+                El mínimo solo genera una alerta (0 = sin alerta) y no se avisa en el último período del plan.
+                Sin asumir que apruebas los cursos en progreso, esos cursos también se planifican y el primer período es el actual.
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ctx is null || ev is null)
+{
+    <div class="alert alert-info">@Model.NoPuedePlanificar</div>
+    return;
+}
+@if (Model.NoPuedePlanificar is not null)
+{
+    <div class="alert alert-success">@Model.NoPuedePlanificar</div>
+}
+
+@* ── Resumen ───────────────────────────────────────────────────────────────────── *@
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body">
+        <div class="fs-3 fw-bold">@ev.CreditosFaltantes</div><div class="text-muted small">Créditos faltantes</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body">
+        <div class="fs-3 fw-bold">@ev.CuatrimestresPlanificados</div><div class="text-muted small">Cuatrimestres planificados</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body">
+        <div class="fs-3 fw-bold @(ev.CreditosSinPlanificar > 0 ? "text-warning" : "text-success")">@ev.CreditosSinPlanificar</div>
+        <div class="text-muted small">Créditos sin planificar (@ev.SinPlanificar.Count materias)</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body">
+        <div class="fs-3 fw-bold">@(ev.Graduacion?.Nombre ?? "—")</div>
+        <div class="text-muted small">Graduación @(ev.GraduacionEstimada ? "estimada (faltan materias por planificar)" : "según este plan")</div></div></div></div>
+</div>
+
+<div class="alert alert-secondary py-2 small">
+    <strong>Límite: @ctx.Limite créditos por cuatrimestre.</strong> @Model.Config.ExplicarLimite(ctx.IndiceActual)
+    Primer período planificable: <strong>@ctx.Primero.Nombre</strong>
+    (@(Model.Config.AsumirEnCurso ? "se asume que apruebas los cursos en progreso" : "los cursos en progreso también se planifican")).
+    @if (ev.Problemas > 0) { <span class="text-danger fw-semibold ms-1">Este plan tiene @ev.Problemas problema@(ev.Problemas == 1 ? "" : "s").</span> }
+    else if (conMaterias) { <span class="text-success fw-semibold ms-1">Este plan cumple todas las reglas.</span> }
+</div>
+@foreach (var e in ev.Errores) { <div class="alert alert-danger py-2">@e</div> }
+
+@* ── Alertas del plan, cada una con su botón para resolverla ───────────────────────────────────── *@
+@if (Model.Alertas.Count > 0)
+{
+    <div class="card mb-3" id="alertas-plan">
+        <div class="card-header d-flex justify-content-between"><strong>Alertas del plan</strong><span class="badge bg-secondary">@Model.Alertas.Count</span></div>
+        <ul class="list-group list-group-flush">
+            @foreach (var a in Model.Alertas)
+            {
+                <li class="list-group-item alerta-plan @(a.Grave ? "alerta-grave" : "")" data-tipo="@a.Tipo">
+                    <span class="alerta-icono" aria-hidden="true">⚠</span>
+                    <span class="alerta-texto">@a.Mensaje</span>
+                    @if (a.Accion is { } accion)
+                    {
+                        <form asp-action="Asignar" method="post" class="alerta-accion">
+                            <input type="hidden" name="id" value="@actual.Id" />
+                            <input type="hidden" name="codigo" value="@accion.Codigo" />
+                            <input type="hidden" name="periodo" value="@(accion.Periodo ?? "")" />
+                            <input type="hidden" name="avisar" value="true" />
+                            <button type="submit" class="btn btn-sm btn-outline-primary">@accion.Texto</button>
+                        </form>
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+}
+else if (conMaterias)
+{
+    <div class="alert alert-success py-2 small" id="sin-alertas">Sin alertas: no veo riesgos en este plan.</div>
+}
+
+@* ── Tablero ───────────────────────────────────────────────────────────────────── *@
+<form id="plan-token" class="d-none">@Html.AntiForgeryToken()</form>
+
+@{
+    // Qué materias de la bandeja se pueden cursar ya (cumplen sus requisitos con lo aprobado y lo que está en curso), para el filtro.
+    bool EsDisponible(PrioridadMateria m) => ctx.EstaDisponible(m.Materia.Codigo, ctx.Aprobadas, ctx.CreditosAprobados);
+    string Etiquetas(PrioridadMateria m) => string.Join(' ', new[]
+    {
+        EsDisponible(m) ? "disponible" : null, m.Etiquetas.Contains("Rezagada") ? "rezagada" : null, m.Etiquetas.Contains("Ruta crítica") ? "ruta" : null,
+    }.Where(x => x is not null));
+    var nDisponibles = Model.PorPlanificar.Count(EsDisponible);
+    var nRezagadas = Model.PorPlanificar.Count(m => m.Etiquetas.Contains("Rezagada"));
+    var nRuta = Model.PorPlanificar.Count(m => m.Etiquetas.Contains("Ruta crítica"));
+}
+<div id="plan-estado" class="visually-hidden" role="status" aria-live="polite"></div>
+<div id="plan-modo" class="plan-modo small" role="group" aria-label="Moviendo una materia" hidden>
+    <span id="plan-modo-texto"></span>
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="plan-modo-cancelar">Cancelar (Esc)</button>
+</div>
+
+<div class="row g-3" id="tablero" data-plan="@actual.Id" data-url="@Url.Action("Asignar")" data-colocaciones="@Model.ColocacionesJson">
+    <aside class="col-lg-3">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><strong>Por planificar</strong><span class="badge bg-secondary">@Model.PorPlanificar.Count</span></div>
+            @if (Model.PorPlanificar.Count > 0)
+            {
+                <div class="px-2 pt-2" id="filtros-bandeja">
+                    <div class="d-flex flex-wrap gap-1" role="group" aria-label="Filtrar las materias por planificar">
+                        <button type="button" class="btn btn-sm btn-outline-primary filtro-chip" data-filtro="todas" aria-pressed="true">Todas (@Model.PorPlanificar.Count)</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary filtro-chip" data-filtro="disponible" aria-pressed="false">Disponibles (@nDisponibles)</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary filtro-chip" data-filtro="rezagada" aria-pressed="false">Rezagadas (@nRezagadas)</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary filtro-chip" data-filtro="ruta" aria-pressed="false">Ruta crítica (@nRuta)</button>
+                    </div>
+                    <label class="visually-hidden" for="buscar-bandeja">Buscar por código o nombre</label>
+                    <input id="buscar-bandeja" type="search" class="form-control form-control-sm mt-2" placeholder="Buscar por código o nombre" autocomplete="off" />
+                    <div id="sin-coincidencias" class="text-muted small mt-2" hidden>Ninguna materia coincide con el filtro.</div>
+                </div>
+            }
+            <div class="card-body p-2 zona-suelta lista-pendientes" data-dropzone data-periodo="">
+                <button type="button" class="btn btn-sm btn-primary w-100 mb-2" data-destino data-periodo="" data-bandeja hidden>Devolver a «Por planificar»</button>
+                @if (Model.PorPlanificar.Count == 0)
+                {
+                    <div class="text-muted small p-2">Todas las materias están en el plan. Arrastra una tarjeta aquí para sacarla.</div>
+                }
+                @foreach (var m in Model.PorPlanificar)
+                {
+                    var codigo = m.Materia.Codigo;
+                    <div class="plan-card" draggable="true" data-codigo="@codigo" data-etiquetas="@Etiquetas(m)" data-buscar="@($"{codigo} {m.Materia.Nombre}".ToLowerInvariant())" title="@m.Motivo">
+                        <div class="d-flex justify-content-between"><strong>@codigo</strong><span class="text-muted">@m.Materia.Creditos cr · cuat. @m.Materia.Cuatrimestre</span></div>
+                        <div>@m.Materia.Nombre</div>
+                        <div class="mt-1">
+                            @if (EsDisponible(m)) { <span class="badge bg-success">Disponible</span> }
+                            @foreach (var t in m.Etiquetas)
+                            {
+                                <span class="badge @(t == "Rezagada" ? "bg-warning text-dark" : t == "Ruta crítica" ? "bg-danger" : "bg-secondary")">@t</span>
+                            }
+                            <span class="badge bg-light text-dark border">@m.Puntos pts</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary btn-mover mt-1" data-mover data-codigo="@codigo" aria-label="Mover @codigo a un período">Mover…</button>
+                        <details class="small text-muted mt-1"><summary>Por qué</summary>@m.Motivo</details>
+                        <form asp-action="Asignar" method="post" class="input-group input-group-sm mt-1">
+                            <input type="hidden" name="id" value="@actual.Id" />
+                            <input type="hidden" name="codigo" value="@codigo" />
+                            <select name="periodo" class="form-select" aria-label="Período para @codigo">
+                                @foreach (var c in Model.Columnas.Where(c => c >= ctx.Primero))
+                                {
+                                    <option value="@c.Nombre">@c.Nombre</option>
+                                }
+                            </select>
+                            <button class="btn btn-outline-primary" type="submit">Agregar a…</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </aside>
+
+    <div class="col-lg-9">
+        <div class="plan-columnas">
+            @foreach (var col in Model.Columnas)
+            {
+                var p = ev.Periodos.FirstOrDefault(x => x.Periodo == col);
+                var pasado = col < ctx.Primero;
+                <section class="plan-col" aria-label="@col.Nombre" data-periodo="@col.Nombre">
+                    <div class="plan-col-cab">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>@col.Nombre</strong>
+                            <span class="badge @ClaseCredito(p)" title="Créditos del período / límite">@(p?.Creditos ?? 0) / @ctx.Limite cr</span>
+                        </div>
+                        <div class="plan-col-motivo small text-danger" data-motivo hidden></div>
+                        <div class="plan-col-aviso small text-warning" data-aviso hidden></div>
+                        <button type="button" class="btn btn-sm btn-primary w-100 mt-1" data-destino data-periodo="@col.Nombre" hidden>Mover aquí (@col.Nombre)</button>
+                        @if (p is not null)
+                        {
+                            <div class="small text-muted">Al inicio llevarás @Ui.Pct(p.PorcentajeAlInicio) de los créditos</div>
+                            @foreach (var a in p.Alertas) { <div class="small text-danger">⚠ @a</div> }
+                        }
+                        else if (pasado) { <div class="small text-muted">Período pasado o en curso</div> }
+                    </div>
+                    <div class="zona-suelta plan-col-cuerpo" data-dropzone data-periodo="@col.Nombre">
+                        @if (p is null || p.Materias.Count == 0)
+                        {
+                            <div class="text-muted small p-2">Suelta aquí una materia.</div>
+                        }
+                        else
+                        {
+                            @foreach (var m in p.Materias)
+                            {
+                                Model.Razones.TryGetValue(m.Codigo, out var razon);
+                                <div class="plan-card @(m.EsValida ? "" : "invalida")" draggable="true" data-codigo="@m.Codigo">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>@m.Codigo</strong>
+                                        <span class="text-muted">@m.Creditos cr
+                                            <form asp-action="Asignar" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@actual.Id" /><input type="hidden" name="codigo" value="@m.Codigo" /><input type="hidden" name="periodo" value="" />
+                                                <button type="submit" class="btn-close btn-close-sm ms-1" aria-label="Quitar @m.Codigo del plan" title="Quitar del plan"></button>
+                                            </form>
+                                        </span>
+                                    </div>
+                                    <div>@m.Nombre</div>
+                                    @foreach (var problema in m.Problemas) { <div class="small text-danger">✖ @problema</div> }
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-mover mt-1" data-mover data-codigo="@m.Codigo" aria-label="Mover @m.Codigo a otro período">Mover…</button>
+                                    @if (razon is not null) { <div class="small text-muted fst-italic mt-1">@razon</div> }
+                                </div>
+                            }
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+        <div class="small text-muted mt-2">
+            Arrastra las tarjetas entre columnas, o usa «Mover…» (con el teclado o tocando la pantalla): mientras eliges, las columnas donde la materia
+            <strong>no</strong> puede ir se atenúan y dicen por qué. También puedes usar «Agregar a…». Cada cambio se guarda al instante y se vuelve a validar:
+            los prerrequisitos y porcentajes se comprueban con lo aprobado, lo que está en curso y lo planificado en períodos <strong>anteriores</strong> (no en el mismo).
+        </div>
+    </div>
+</div>
+
+@* ── Simulador de índice ───────────────────────────────────────────────────────────────────── *@
+@if (Model.Simulador is { } sim)
+{
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var letraMaxima = sim.Escala.Letras.Where(l => l.CuentaParaIndice).OrderByDescending(l => l.Puntos).Select(l => l.Letra).FirstOrDefault() ?? "";
+    var puntosMin = sim.Escala.Letras.Where(l => l.CuentaParaIndice).Select(l => l.Puntos ?? 0).DefaultIfEmpty(0).Min();
+    var escalaJson = System.Text.Json.JsonSerializer.Serialize(sim.Escala.Letras.Select(l => new { l = l.Letra, p = l.Puntos ?? 0, c = l.CuentaParaIndice }));
+    var res = sim.Resultado;
+    string Grupo = "";
+    <div class="card mb-3" id="simulador" data-horas="@sim.Actual.HorasPga.ToString(inv)" data-puntos="@sim.Actual.PuntosCalidad.ToString(inv)"
+         data-sin-fila="@sim.CreditosSinFila.ToString(inv)" data-escala="@escalaJson" data-minimo="@puntosMin" data-maximo="@sim.Escala.PuntosMaximos"
+         data-letra-maxima="@letraMaxima" data-url="@Url.Action("NotaEsperada")" data-objetivo="@sim.Objetivo.ToString("0.00", inv)">
+        <div class="card-header"><strong>Simulador de índice</strong></div>
+        <div class="card-body">
+            <p class="small text-muted">
+                Elige la nota que esperas sacar en cada materia que cursas o planificaste; el índice proyectado se recalcula al instante.
+                Lo que dejes sin nota cuenta como «lo que falta» para saber qué promedio necesitas.
+            </p>
+            <div class="row g-3 align-items-end mb-3">
+                <div class="col-6 col-md-3"><div class="text-muted small">Índice actual</div><div class="fs-4 fw-bold" id="sim-actual">@Ui.Indice(sim.Actual.Indice)</div></div>
+                <div class="col-6 col-md-3">
+                    <div class="text-muted small">Índice proyectado</div>
+                    <div class="fs-4 fw-bold" id="sim-proyectado" aria-live="polite">@res.IndiceProyectado.ToString("0.00", inv)</div>
+                    <div class="small text-muted" id="sim-detalle">con @res.CreditosConNota.ToString("0.##", inv) créditos con nota esperada</div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small mb-0" for="sim-objetivo">Índice objetivo</label>
+                    <input id="sim-objetivo" type="number" step="0.01" min="0" max="@sim.Escala.PuntosMaximos" class="form-control form-control-sm" value="@sim.Objetivo.ToString("0.00", inv)" />
+                </div>
+            </div>
+            <div id="sim-necesidad" class="alert alert-secondary py-2" role="status">@SimuladorIndice.Describir(res, sim.Objetivo, letraMaxima)</div>
+
+            @if (sim.Filas.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle" id="tabla-simulador">
+                        <thead><tr><th>Materia</th><th class="text-end">Créditos</th><th style="width:11rem">Nota que espero</th></tr></thead>
+                        <tbody>
+                            @foreach (var f in sim.Filas)
+                            {
+                                if (f.Grupo != Grupo)
+                                {
+                                    Grupo = f.Grupo;
+                                    <tr class="table-secundaria"><th colspan="3" class="small text-muted">@Grupo</th></tr>
+                                }
+                                <tr data-codigo="@f.Codigo">
+                                    <td><strong>@f.Codigo</strong> <span class="text-muted">@f.Nombre</span></td>
+                                    <td class="text-end">@f.Creditos.ToString("0.##", inv)</td>
+                                    <td>
+                                        <select class="form-select form-select-sm sim-nota" data-codigo="@f.Codigo" data-creditos="@f.Creditos.ToString(inv)" aria-label="Nota que esperas en @f.Codigo">
+                                            <option value="">—</option>
+                                            @foreach (var l in sim.Escala.Letras)
+                                            {
+                                                <option value="@l.Letra" selected="@string.Equals(l.Letra, f.Letra, StringComparison.OrdinalIgnoreCase)">@l.Letra @(l.CuentaParaIndice ? $"({l.Puntos} pts)" : "(no cuenta)")</option>
+                                            }
+                                        </select>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted small" id="sim-sin-filas">No tienes materias en curso ni planificadas: arma el plan para poder simular notas.</p>
+            }
+            @if (sim.MateriasSinFila > 0)
+            {
+                <p class="small text-muted mb-0" id="sim-resto">
+                    Además faltan @sim.MateriasSinFila @(sim.MateriasSinFila == 1 ? "materia" : "materias") sin planificar (@sim.CreditosSinFila.ToString("0.##", inv) créditos): entran en «lo que falta».
+                </p>
+            }
+            <div id="sim-guardado" class="visually-hidden" role="status" aria-live="polite"></div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/planificador.js" asp-append-version="true"></script>
+    <script src="~/js/simulador.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,114 @@
+name: Publicar versión
+
+# Se ejecuta al subir una etiqueta que empieza con «v» (por ejemplo, v1.0.0): prueba el código, arma el programa para cada sistema
+# y lo publica como Release en GitHub. Nunca corre por un Pull Request, así que el código de un fork no puede publicar nada.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  probar:
+    name: Probar antes de publicar
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Comprobar que la etiqueta es una versión (v1.2.3 o v1.2.3-beta.1)
+        shell: bash
+        run: |
+          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "La etiqueta «$GITHUB_REF_NAME» no es una versión válida."
+            exit 1
+          fi
+
+      - name: Compilar
+        run: dotnet build --configuration Release -warnaserror
+
+      - name: Instalar el navegador de las pruebas
+        run: pwsh HistorialAcademico.Banner/bin/Release/net8.0/playwright.ps1 install chromium
+
+      - name: Correr las pruebas
+        run: dotnet test --configuration Release --no-build
+
+      - name: Validar los pénsums
+        run: dotnet run --project HistorialAcademico.Validador --configuration Release --no-build -- validar pensums
+
+  armar:
+    name: Armar el programa (${{ matrix.rid }})
+    needs: probar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: true
+      matrix:
+        rid: [win-x64, linux-x64, osx-arm64, osx-x64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Autocontenido: la persona no necesita instalar .NET. El navegador (Chromium) no viaja adentro: se descarga la primera vez que se abre.
+      - name: Publicar
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          dotnet publish HistorialAcademico.Web --configuration Release --runtime "${{ matrix.rid }}" --self-contained true \
+            -p:Version="$version" -p:RepositorioGitHub="$GITHUB_REPOSITORY" -o "salida/HistorialAcademico"
+
+      - name: Comprimir
+        shell: bash
+        run: |
+          nombre="HistorialAcademico-${GITHUB_REF_NAME}-${{ matrix.rid }}"
+          cd salida
+          if [ "${{ matrix.rid }}" = "win-x64" ]; then
+            zip -qr "../$nombre.zip" HistorialAcademico
+          else
+            chmod +x HistorialAcademico/HistorialAcademico.Web
+            tar -czf "../$nombre.tar.gz" HistorialAcademico
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: programa-${{ matrix.rid }}
+          path: |
+            HistorialAcademico-*.zip
+            HistorialAcademico-*.tar.gz
+          if-no-files-found: error
+
+  publicar:
+    name: Crear el Release
+    needs: armar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write   # lo único que necesita: crear el Release de esta etiqueta
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: programa-*
+          merge-multiple: true
+          path: entrega
+
+      - name: Sumas de comprobación
+        working-directory: entrega
+        run: sha256sum HistorialAcademico-* > SHA256SUMS.txt
+
+      - name: Crear el Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          marca=""
+          case "$GITHUB_REF_NAME" in *-*) marca="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" entrega/* --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes $marca

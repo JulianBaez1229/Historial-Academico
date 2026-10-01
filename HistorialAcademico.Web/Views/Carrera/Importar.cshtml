@@ -1,0 +1,73 @@
+@model ImportarViewModel
+@{
+    ViewData["Title"] = "Importar un pénsum";
+    const string ejemplo = "Código\tAsignatura\tCréditos\tPrerrequisitos\nCuatrimestre 1\nESP101\tAnálisis de Textos Discursivos\t3\t\nISO100\tFundamentos de Informática\t5\t\nCuatrimestre 2\nESP106\tRedacción de Textos Discursivos I\t3\tESP101\nISO200\tProgramación y Estructura de Datos\t5\tISO100";
+}
+
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-action="Index">Carrera y pénsum</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Importar un pénsum</li>
+</ol></nav>
+
+<h1 class="h3 mb-2">Importar un pénsum desde texto</h1>
+<p class="text-muted">
+    Copia el plan de estudios de la página de tu universidad y pégalo aquí. Lo convierto en una tabla que puedes revisar y corregir antes de guardarlo
+    como <strong>pénsum personal</strong> (queda solo en tu computador y aparece en la lista de «Carrera y pénsum»).
+</p>
+
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+<form asp-action="Convertir" method="post" id="form-importar">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label for="nombreCarrera" class="form-label">Nombre de la carrera</label>
+                    <input id="nombreCarrera" name="nombreCarrera" class="form-control" maxlength="100" value="@Model.NombreCarrera" placeholder="Ej. Derecho" required />
+                </div>
+                <div class="col-md-3">
+                    <label for="version" class="form-label">Versión del plan</label>
+                    <input id="version" name="version" class="form-control" maxlength="20" value="@Model.Version" placeholder="Ej. 2022" required />
+                </div>
+                <div class="col-md-4">
+                    <label for="universidad" class="form-label">Reglas de la universidad</label>
+                    <select id="universidad" name="universidad" class="form-select">
+                        @foreach (var u in Model.Universidades)
+                        {
+                            <option value="@u.Id" selected="@(u.Id == Model.Universidad)">@u.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-text mt-2">
+                De la universidad se usan la escala de calificaciones, los períodos del año y los límites de créditos. Si la tuya no está, elige la que más se parezca
+                o <a asp-action="Guia">agrégala</a>.
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <label for="texto" class="form-label fw-semibold">Texto del plan de estudios</label>
+            <textarea id="texto" name="texto" class="form-control font-monospace" rows="14" maxlength="200000" required
+                      placeholder="Pega aquí la tabla: código, asignatura, créditos y prerrequisitos de cada materia.">@Model.Texto</textarea>
+            <details class="mt-2">
+                <summary class="small">¿Qué formato entiende?</summary>
+                <div class="small mt-2">
+                    <ul class="mb-2">
+                        <li>Una materia por línea, con el <strong>código</strong>, la <strong>asignatura</strong>, los <strong>créditos</strong> y los <strong>prerrequisitos</strong>.</li>
+                        <li>Las columnas pueden ir separadas por tabulador (lo que sale al copiar una tabla de una página), por <code>|</code>, por <code>;</code> o por espacios dobles. También entiendo una línea con espacios simples, como <code>ISO625 Programación Móvil 4 ISO515</code>.</li>
+                        <li>Si hay una fila de encabezado (<code>Código</code>, <code>Asignatura</code>, <code>Créditos</code>, <code>Prerrequisitos</code>), la uso para saber el orden de las columnas.</li>
+                        <li>Los títulos <code>Cuatrimestre 3</code>, <code>Tercer semestre</code> o <code>IV Ciclo</code> fijan el cuatrimestre de las materias que siguen. Si el texto no los trae, los estimo según los prerrequisitos.</li>
+                        <li>Los prerrequisitos pueden ser códigos (<code>ISO515, ISO520</code>) o un porcentaje (<code>67%</code>).</li>
+                    </ul>
+                    <p class="mb-1">Ejemplo:</p>
+                    <pre class="guia-codigo mb-0">@ejemplo.Replace("\t", "  ")</pre>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Convertir y ver la vista previa</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+</form>

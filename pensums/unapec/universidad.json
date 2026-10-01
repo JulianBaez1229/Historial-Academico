@@ -1,0 +1,63 @@
+{
+  "formato": 1,
+  "id": "unapec",
+  "nombre": "UNAPEC – Universidad APEC",
+  "urlBanner": "https://alumnos.unapec.edu.do/StudentSelfService/ssb/studentCommonDashboard",
+  "escalaCalificaciones": [
+    {
+      "letra": "A",
+      "puntos": 4,
+      "aprueba": true,
+      "cuentaParaIndice": true
+    },
+    {
+      "letra": "B",
+      "puntos": 3,
+      "aprueba": true,
+      "cuentaParaIndice": true
+    },
+    {
+      "letra": "C",
+      "puntos": 2,
+      "aprueba": true,
+      "cuentaParaIndice": true
+    },
+    {
+      "letra": "D",
+      "puntos": 1,
+      "aprueba": true,
+      "cuentaParaIndice": true
+    },
+    {
+      "letra": "F",
+      "puntos": 0,
+      "aprueba": false,
+      "cuentaParaIndice": true
+    },
+    {
+      "letra": "E",
+      "aprueba": true,
+      "cuentaParaIndice": false,
+      "nota": "Exenta: cuenta como aprobada, pero no entra en el índice."
+    }
+  ],
+  "periodos": [
+    {
+      "nombre": "ENE-ABR",
+      "codigoBanner": "10"
+    },
+    {
+      "nombre": "MAY-AGO",
+      "codigoBanner": "20"
+    },
+    {
+      "nombre": "SEP-DIC",
+      "codigoBanner": "30"
+    }
+  ],
+  "limitesCreditos": {
+    "base": 25,
+    "alto": 27,
+    "umbralIndice": 3.40
+  }
+}

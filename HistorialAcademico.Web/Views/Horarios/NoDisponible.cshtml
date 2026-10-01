@@ -1,0 +1,70 @@
+@model NoDisponibleViewModel
+@using HistorialAcademico.Core.Horarios
+@using HistorialAcademico.Web.Services
+@{
+    ViewData["Title"] = "Horas no disponibles";
+    ViewData["Pestana"] = "nodisponible";
+    var dias = new (DiasSemana Dia, string Nombre)[]
+    {
+        (DiasSemana.Lunes, "Lunes"), (DiasSemana.Martes, "Martes"), (DiasSemana.Miercoles, "Miércoles"), (DiasSemana.Jueves, "Jueves"),
+        (DiasSemana.Viernes, "Viernes"), (DiasSemana.Sabado, "Sábado"),
+    };
+    var horas = Enumerable.Range(HorarioTentativoService.HoraPrimeraCelda, HorarioTentativoService.HoraUltimaCelda - HorarioTentativoService.HoraPrimeraCelda + 1).ToList();
+}
+
+@section Scripts {
+    <script src="~/js/horario.js" asp-append-version="true"></script>
+}
+
+<h1 class="h3 mb-2">Horarios de Banner</h1>
+<partial name="_Pestanas" />
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+<p class="text-muted">
+    Marca las horas en las que no puedes tomar clases (por trabajo, por ejemplo). En «Mi horario tentativo», las secciones que
+    chocan con estas horas aparecen atenuadas y al final de la lista. Cada casilla es una hora, de @Ui.HoraMin(HorarioTentativoService.HoraPrimeraCelda * 60) a @Ui.HoraMin((HorarioTentativoService.HoraUltimaCelda + 1) * 60).
+</p>
+
+<form asp-action="GuardarNoDisponible" method="post" id="form-nodisponible">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-3" id="atajos" hidden>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-atajo="laboral">Lunes a viernes, 8:00 a. m. – 5:00 p. m.</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-atajo="limpiar">Desmarcar todo</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm text-center align-middle mb-0 cuadricula-horas" id="cuadricula">
+                    <caption class="visually-hidden">Horas no disponibles por día</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Hora</th>
+                            @foreach (var d in dias)
+                            {
+                                <th scope="col"><button type="button" class="btn btn-link btn-sm p-0" data-columna="@d.Dia" title="Marcar o desmarcar todo el @d.Nombre.ToLower()">@d.Nombre</button></th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var h in horas)
+                    {
+                        <tr>
+                            <th scope="row" class="text-end small fw-normal">@Ui.HoraMin(h * 60)</th>
+                            @foreach (var d in dias)
+                            {
+                                var marcada = Model.Celdas.Contains((d.Dia, h));
+                                <td>
+                                    <input type="checkbox" class="form-check-input" name="celdas" value="@d.Dia-@h" checked="@marcada"
+                                           data-dia="@d.Dia" data-hora="@h" aria-label="@d.Nombre @Ui.HoraMin(h * 60)" />
+                                </td>
+                            }
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar horas no disponibles</button>
+</form>

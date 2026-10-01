@@ -1,0 +1,199 @@
+@model CarreraViewModel
+@using HistorialAcademico.Core.Universidad
+@{
+    ViewData["Title"] = "Carrera y pénsum";
+    var v = Model.Vista;
+    var r = Model.Reglas;
+    var conPuntos = r.Escala.Letras.Where(l => l.CuentaParaIndice).Select(l => $"{l.Letra} = {l.Puntos}");
+    var sinPuntos = r.Escala.Letras.Where(l => !l.CuentaParaIndice).Select(l => l.Letra);
+    var coincidente = v.Pensums.FirstOrDefault(p => p.CoincideConCargado);
+    const string confirmar = "return confirm('Cambiar de pénsum reemplaza las materias del pénsum actual. Tu histórico de Banner se conserva y todo se recalcula; " +
+                             "los escenarios del planificador pierden las materias que no existan en el nuevo pénsum. ¿Continuar?');";
+}
+
+<h1 class="h3 mb-2">Carrera y pénsum</h1>
+<p class="text-muted">
+    Elige tu universidad, tu carrera y la versión de tu plan de estudios. El estado de tus materias, el índice y el planificador
+    se calculan con ese pénsum y con las reglas de su universidad.
+</p>
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+@* ── Lo que está en uso ──────────────────────────────────────────────────────────────────────── *@
+<div class="card mb-3" id="pensum-activo">
+    <div class="card-body">
+        <h2 class="h5">Pénsum en uso</h2>
+        @if (v.Activo is not null)
+        {
+            <p class="mb-1">
+                <strong>@v.Activo.NombreCarrera</strong> · @r.Nombre · plan @v.Activo.Version
+            </p>
+            <p class="small text-muted mb-2">
+                @v.MateriasCargadas materias, @v.CreditosCargados créditos · elegido el @Ui.FechaHora(v.Activo.Aplicado)
+            </p>
+        }
+        else if (v.HayPensumCargado)
+        {
+            <p class="mb-1">Tienes un pénsum cargado desde un archivo CSV: <strong>@v.MateriasCargadas materias, @v.CreditosCargados créditos</strong>.</p>
+            @if (coincidente is not null)
+            {
+                <p class="small mb-2" id="coincide">Es idéntico a <strong>@coincidente.Definicion.NombreCarrera</strong> (@coincidente.Universidad.Nombre, plan @coincidente.Definicion.Version) del catálogo.
+                    Puedes marcarlo con «Usar este pénsum» para dejar de depender del CSV.</p>
+            }
+        }
+        else
+        {
+            <p class="text-muted mb-2" id="sin-pensum">Todavía no hay ningún pénsum. Elige uno de la lista.</p>
+        }
+        <details>
+            <summary class="small">Reglas de @r.Nombre que se están usando</summary>
+            <ul class="small mt-2 mb-0">
+                <li><strong>Calificaciones:</strong> @string.Join(", ", conPuntos)@(sinPuntos.Any() ? $"; sin puntos (no entran en el índice): {string.Join(", ", sinPuntos)}" : "").</li>
+                <li><strong>Períodos del año:</strong> @string.Join(", ", r.Periodos.Periodos.Select(p => p.Nombre)).</li>
+                <li><strong>Límite de créditos por período:</strong> @r.Limites.Base (@r.Limites.Alto si tu índice supera @Ui.Indice(r.Limites.UmbralIndice)).</li>
+            </ul>
+        </details>
+    </div>
+</div>
+
+@* ── Filtro ──────────────────────────────────────────────────────────────────────────────────── *@
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end" id="filtro-carrera">
+            <div class="col-md-4">
+                <label for="universidad" class="form-label">Universidad</label>
+                <select id="universidad" name="universidad" class="form-select">
+                    <option value="">Todas las universidades</option>
+                    @foreach (var u in v.Universidades)
+                    {
+                        <option value="@u.Id" selected="@(u.Id == Model.Universidad)">@u.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label for="q" class="form-label">Carrera</label>
+                <input id="q" name="q" class="form-control" value="@Model.Busqueda" placeholder="Ej. ingeniería, software, derecho…" autocomplete="off" />
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">Filtrar</button>
+                @if (Model.HayFiltro) { <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a> }
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ── Lista ───────────────────────────────────────────────────────────────────────────────────── *@
+<div class="card mb-3">
+    @if (v.Pensums.Count == 0)
+    {
+        <div class="card-body text-muted" id="sin-resultados">
+            @if (!v.CarpetaEncontrada) { <span>No encontré la carpeta <code>pensums/</code> de la aplicación.</span> }
+            else if (v.TotalEnCatalogo == 0) { <span>El catálogo todavía no tiene ningún pénsum válido.</span> }
+            else { <span>Ningún pénsum coincide con lo que buscas (@v.TotalEnCatalogo en el catálogo).</span> }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" id="tabla-carreras">
+                <thead>
+                    <tr>
+                        <th>Universidad</th><th>Carrera</th><th>Plan</th><th class="text-end">Créditos</th><th class="text-end">Cuatrimestres</th><th class="text-end">Materias</th>
+                        @if (v.HayHistorico) { <th>Con tu histórico</th> }
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in v.Pensums)
+                {
+                    var d = p.Definicion;
+                    <tr class="@(p.EsActivo ? "fila-activa" : "")" data-clave="@d.Clave">
+                        <td>@p.Universidad.Nombre</td>
+                        <td class="fw-semibold">@d.NombreCarrera@if (p.EsPersonal) { <span class="badge bg-secondary ms-2" title="Lo creaste tú pegando el texto del plan; queda solo en tu computador">Personal</span> }</td>
+                        <td>@d.Version</td>
+                        <td class="text-end">@d.TotalCreditos</td>
+                        <td class="text-end">@d.Cuatrimestres</td>
+                        <td class="text-end">@d.Materias.Count</td>
+                        @if (v.HayHistorico && v.Convalidaciones.TryGetValue(d.Clave, out var conv))
+                        {
+                            <td class="convalida">
+                                <div><strong>@conv.CreditosAprobados</strong> de @conv.CreditosTotales créditos (@Ui.Pct(conv.Porcentaje))</div>
+                                @if (conv.Materias.Count > 0)
+                                {
+                                    <details>
+                                        <summary class="small">
+                                            Se convalidan @conv.Materias.Count @(conv.Materias.Count == 1 ? "materia" : "materias")@(conv.PorEquivalencia > 0 ? $" ({conv.PorEquivalencia} por equivalencia)" : "")
+                                        </summary>
+                                        <ul class="small mb-0 mt-1 ps-3">
+                                            @foreach (var m in conv.Materias)
+                                            {
+                                                <li>
+                                                    <span class="fw-semibold">@m.Codigo</span> @m.Nombre
+                                                    @if (m.PorEquivalencia is not null) { <span>· por equivalencia con @m.PorEquivalencia</span> }
+                                                    @if (m.Exenta) { <span>· exenta</span> }
+                                                    @if (!string.IsNullOrEmpty(m.Calificacion)) { <span class="text-muted">· @m.Calificacion</span> }
+                                                </li>
+                                            }
+                                        </ul>
+                                    </details>
+                                }
+                                else { <div class="small text-muted">No se convalida ninguna materia.</div> }
+                            </td>
+                        }
+                        else if (v.HayHistorico) { <td></td> }
+                        <td class="text-end">
+                            @if (p.EsActivo)
+                            {
+                                <span class="badge bg-success">En uso</span>
+                            }
+                            else
+                            {
+                                <div class="d-flex justify-content-end gap-1">
+                                    <form asp-action="Activar" method="post" onsubmit="@(v.HayPensumCargado && !p.CoincideConCargado ? confirmar : "return true;")">
+                                        <input type="hidden" name="clave" value="@d.Clave" />
+                                        <button type="submit" class="btn btn-sm btn-primary" aria-label="Usar el pénsum de @d.NombreCarrera, plan @d.Version">Usar este pénsum</button>
+                                    </form>
+                                    @if (p.EsPersonal)
+                                    {
+                                        <form asp-action="EliminarPersonal" method="post" onsubmit="return confirm('¿Borrar este pénsum personal? No se puede deshacer.');">
+                                            <input type="hidden" name="clave" value="@d.Clave" />
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Borrar el pénsum personal de @d.NombreCarrera, plan @d.Version">Borrar</button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<div class="card mb-3" id="carrera-no-esta">
+    <div class="card-body">
+        <h2 class="h5">¿No está tu carrera?</h2>
+        <p class="mb-0">
+            Puedes agregarla: un pénsum es un archivo JSON en <code>pensums/&lt;universidad&gt;/</code>.
+            <a asp-action="Guia">Lee la guía para agregar tu carrera</a>.
+        </p>
+        <p class="mb-0 mt-2" id="importar-texto">
+            ¿Solo quieres usarla tú? <a asp-action="Importar" class="btn btn-sm btn-outline-secondary ms-1">Importar mi pénsum pegando el texto</a>
+        </p>
+    </div>
+</div>
+
+@if (v.Problemas.Count > 0)
+{
+    <details class="card" id="problemas-catalogo">
+        <summary class="card-body py-2">Archivos del catálogo con problemas (@v.Problemas.Count)</summary>
+        <div class="card-body pt-0">
+            <p class="small text-muted">Estos archivos no aparecen en la lista hasta que se corrijan.</p>
+            <ul class="small mb-0">
+                @foreach (var p in v.Problemas) { <li>@p</li> }
+            </ul>
+        </div>
+    </details>
+}

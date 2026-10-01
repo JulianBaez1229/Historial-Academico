@@ -1,0 +1,819 @@
+{
+  "formato": 1,
+  "universidad": "unapec",
+  "carrera": "ingenieria-software",
+  "nombreCarrera": "Ingeniería de Software",
+  "version": "11",
+  "totalCreditos": 218,
+  "cuatrimestres": 12,
+  "materias": [
+    {
+      "codigo": "ESP101",
+      "nombre": "Análisis de Textos Discursivos",
+      "creditos": 3,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO100",
+      "nombre": "Fundamentos de Informática y Algoritmos",
+      "creditos": 5,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO105",
+      "nombre": "Fundamentos de Sistemas Operativos",
+      "creditos": 3,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC011",
+      "nombre": "Historia Social Dominicana",
+      "creditos": 3,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC030",
+      "nombre": "Orientación Universitaria",
+      "creditos": 2,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "MAT127",
+      "nombre": "Matemática Superior para Ingenieros",
+      "creditos": 5,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "INF250",
+      "nombre": "Fundamentos de Ingeniería",
+      "creditos": 2,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ENG001",
+      "nombre": "Inglés I",
+      "creditos": 0,
+      "cuatrimestre": 1,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC043",
+      "nombre": "Gestión Ambiental",
+      "creditos": 2,
+      "cuatrimestre": 2,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ESP106",
+      "nombre": "Redacción de Textos Discursivos I",
+      "creditos": 3,
+      "cuatrimestre": 2,
+      "prerrequisitos": [
+        "ESP101"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC200",
+      "nombre": "Introducción a la Sociología",
+      "creditos": 3,
+      "cuatrimestre": 2,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC101",
+      "nombre": "Introducción a la Psicología",
+      "creditos": 3,
+      "cuatrimestre": 2,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "MAT131",
+      "nombre": "Cálculo y Geometría Analítica I",
+      "creditos": 5,
+      "cuatrimestre": 2,
+      "prerrequisitos": [
+        "MAT127"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO200",
+      "nombre": "Programación y Estructura de Datos",
+      "creditos": 5,
+      "cuatrimestre": 2,
+      "prerrequisitos": [
+        "ISO100"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ENG002",
+      "nombre": "Inglés II",
+      "creditos": 0,
+      "cuatrimestre": 2,
+      "prerrequisitos": [
+        "ENG001"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ODEP",
+      "nombre": "Optativa Deporte",
+      "creditos": 0,
+      "cuatrimestre": 2,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "INF111",
+      "nombre": "Programación Orientada a Objetos",
+      "creditos": 3,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "ISO200"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO300",
+      "nombre": "Fundamentos de Ingeniería de Software",
+      "creditos": 4,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "INF250"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ESP107",
+      "nombre": "Redacción de Textos Discursivos II",
+      "creditos": 3,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "ESP106"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "MAT132",
+      "nombre": "Cálculo y Geometría Analítica II",
+      "creditos": 5,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "MAT131"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ING716",
+      "nombre": "Física I",
+      "creditos": 3,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "MAT131"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ING717",
+      "nombre": "Laboratorio de Física I",
+      "creditos": 1,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "MAT131"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO310",
+      "nombre": "Diseño Web",
+      "creditos": 4,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "ISO200"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ENG003",
+      "nombre": "Inglés III",
+      "creditos": 0,
+      "cuatrimestre": 3,
+      "prerrequisitos": [
+        "ENG002"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "INF164",
+      "nombre": "Base de Datos I",
+      "creditos": 3,
+      "cuatrimestre": 4,
+      "prerrequisitos": [
+        "INF111"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO410",
+      "nombre": "Verificación y Validación de Software",
+      "creditos": 4,
+      "cuatrimestre": 4,
+      "prerrequisitos": [
+        "ISO300"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC013",
+      "nombre": "Filosofía",
+      "creditos": 2,
+      "cuatrimestre": 4,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC253",
+      "nombre": "Metodología y Técnicas de Investigación",
+      "creditos": 4,
+      "cuatrimestre": 4,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "MAT151",
+      "nombre": "Matemática Discreta",
+      "creditos": 4,
+      "cuatrimestre": 4,
+      "prerrequisitos": [
+        "MAT132"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC031",
+      "nombre": "Ética Profesional",
+      "creditos": 3,
+      "cuatrimestre": 4,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO500",
+      "nombre": "Ingeniería de Requisitos",
+      "creditos": 3,
+      "cuatrimestre": 4,
+      "prerrequisitos": [
+        "ISO300"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ENG004",
+      "nombre": "Inglés IV",
+      "creditos": 0,
+      "cuatrimestre": 4,
+      "prerrequisitos": [
+        "ENG003"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "INF165",
+      "nombre": "Base de Datos II",
+      "creditos": 3,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "INF164"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO505",
+      "nombre": "Ingeniería de la Usabilidad",
+      "creditos": 3,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "ISO410"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "CON127",
+      "nombre": "Contabilidad para Ingenieros",
+      "creditos": 3,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "MAT127"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ING718",
+      "nombre": "Física II",
+      "creditos": 3,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "ING716"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ING719",
+      "nombre": "Laboratorio de Física II",
+      "creditos": 1,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "ING717"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO515",
+      "nombre": "Programación Web",
+      "creditos": 3,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "ISO310"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ADM535",
+      "nombre": "Actitud Emprendedora",
+      "creditos": 3,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "SOC101"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO400",
+      "nombre": "Análisis y Diseño Orientado a Objetos",
+      "creditos": 4,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "ISO500"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ENG005",
+      "nombre": "Inglés V",
+      "creditos": 0,
+      "cuatrimestre": 5,
+      "prerrequisitos": [
+        "ENG004"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO600",
+      "nombre": "Administración de Configuración",
+      "creditos": 3,
+      "cuatrimestre": 6,
+      "prerrequisitos": [
+        "ISO400"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "MAT252",
+      "nombre": "Probabilidad y Estadística",
+      "creditos": 4,
+      "cuatrimestre": 6,
+      "prerrequisitos": [
+        "MAT132"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO615",
+      "nombre": "Desarrollo de Software con Tecnologías Propietarias y Open Source I",
+      "creditos": 4,
+      "cuatrimestre": 6,
+      "prerrequisitos": [
+        "INF165"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO625",
+      "nombre": "Programación Móvil",
+      "creditos": 4,
+      "cuatrimestre": 6,
+      "prerrequisitos": [
+        "ISO515"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ENG006",
+      "nombre": "Inglés VI",
+      "creditos": 0,
+      "cuatrimestre": 6,
+      "prerrequisitos": [
+        "ENG005"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO700",
+      "nombre": "Gestión de Sitios Web",
+      "creditos": 3,
+      "cuatrimestre": 7,
+      "prerrequisitos": [
+        "ISO505"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO705",
+      "nombre": "Proyecto de Software I",
+      "creditos": 4,
+      "cuatrimestre": 7,
+      "prerrequisitos": [
+        "ISO600"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO720",
+      "nombre": "Desarrollo de Software con Tecnologías Propietarias y Open Source II",
+      "creditos": 4,
+      "cuatrimestre": 7,
+      "prerrequisitos": [
+        "ISO615"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO735",
+      "nombre": "Seguridad de Software",
+      "creditos": 3,
+      "cuatrimestre": 7,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "E077",
+      "nombre": "Electiva I ISO-11",
+      "creditos": 3,
+      "cuatrimestre": 7,
+      "prerrequisitos": [
+        "59% créditos aprobados"
+      ],
+      "electiva": true
+    },
+    {
+      "codigo": "ENG007",
+      "nombre": "Inglés VII",
+      "creditos": 0,
+      "cuatrimestre": 7,
+      "prerrequisitos": [
+        "ENG006"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO800",
+      "nombre": "Gestión de Calidad de Software",
+      "creditos": 3,
+      "cuatrimestre": 8,
+      "prerrequisitos": [
+        "ISO735"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO725",
+      "nombre": "Integración de Aplicaciones con Tecnologías Propietarias y Open Source",
+      "creditos": 4,
+      "cuatrimestre": 8,
+      "prerrequisitos": [
+        "ISO720"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO934",
+      "nombre": "Proyecto de Software II",
+      "creditos": 4,
+      "cuatrimestre": 8,
+      "prerrequisitos": [
+        "ISO705"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "E078",
+      "nombre": "Electiva II ISO-11",
+      "creditos": 3,
+      "cuatrimestre": 8,
+      "prerrequisitos": [
+        "E077",
+        "67% créditos aprobados"
+      ],
+      "electiva": true
+    },
+    {
+      "codigo": "ENG008",
+      "nombre": "Inglés VIII",
+      "creditos": 0,
+      "cuatrimestre": 8,
+      "prerrequisitos": [
+        "ENG007"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "IDI045",
+      "nombre": "Inglés para Informática I",
+      "creditos": 3,
+      "cuatrimestre": 9,
+      "prerrequisitos": [
+        "ENG008"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO900",
+      "nombre": "Administración de Desarrollo",
+      "creditos": 4,
+      "cuatrimestre": 9,
+      "prerrequisitos": [
+        "ISO800"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "INF900",
+      "nombre": "Ingeniería Comercial",
+      "creditos": 3,
+      "cuatrimestre": 9,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO912",
+      "nombre": "Arquitectura de Desarrollo con Tecnologías Propietarias y Open Source",
+      "creditos": 4,
+      "cuatrimestre": 9,
+      "prerrequisitos": [
+        "ISO725"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO931",
+      "nombre": "Inteligencia de Negocios",
+      "creditos": 3,
+      "cuatrimestre": 9,
+      "prerrequisitos": [
+        "ISO700"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "E079",
+      "nombre": "Electiva III ISO-11",
+      "creditos": 3,
+      "cuatrimestre": 9,
+      "prerrequisitos": [
+        "E078",
+        "73% créditos aprobados"
+      ],
+      "electiva": true
+    },
+    {
+      "codigo": "IDI046",
+      "nombre": "Inglés para Informática II",
+      "creditos": 3,
+      "cuatrimestre": 10,
+      "prerrequisitos": [
+        "IDI045"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO937",
+      "nombre": "Computación Ubicua",
+      "creditos": 4,
+      "cuatrimestre": 10,
+      "prerrequisitos": [
+        "ISO931"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO940",
+      "nombre": "Implementación de eCommerce con Tecnologías Propietarias y Open Source",
+      "creditos": 4,
+      "cuatrimestre": 10,
+      "prerrequisitos": [
+        "ISO912"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "DER010",
+      "nombre": "Educación Constitucional",
+      "creditos": 3,
+      "cuatrimestre": 10,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO936",
+      "nombre": "Proyecto de Software III",
+      "creditos": 4,
+      "cuatrimestre": 10,
+      "prerrequisitos": [
+        "ISO934"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "PAS261",
+      "nombre": "Pasantía",
+      "creditos": 0,
+      "cuatrimestre": 10,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "SOC281",
+      "nombre": "Seminario de Grado",
+      "creditos": 3,
+      "cuatrimestre": 11,
+      "prerrequisitos": [
+        "SOC253",
+        "90% créditos aprobados"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "ISO945",
+      "nombre": "Sistemas de Información Geográfica",
+      "creditos": 3,
+      "cuatrimestre": 11,
+      "prerrequisitos": [
+        "ISO937"
+      ],
+      "electiva": false
+    },
+    {
+      "codigo": "DER800",
+      "nombre": "Derecho Aplicado a la Informática",
+      "creditos": 3,
+      "cuatrimestre": 11,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "ISC835",
+      "nombre": "Computación Forense y Ciberseguridad",
+      "creditos": 3,
+      "cuatrimestre": 11,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "INF610",
+      "nombre": "Auditoría de Sistemas Informáticos",
+      "creditos": 3,
+      "cuatrimestre": 11,
+      "prerrequisitos": [],
+      "electiva": false
+    },
+    {
+      "codigo": "TFG",
+      "nombre": "Trabajo Final de Grado",
+      "creditos": 6,
+      "cuatrimestre": 12,
+      "prerrequisitos": [],
+      "electiva": false
+    }
+  ],
+  "bloquesElectivas": [
+    {
+      "codigo": "E077",
+      "nombre": "Electiva I ISO-11",
+      "opciones": [
+        {
+          "codigo": "ADM103",
+          "nombre": "Fundamentos de Administración"
+        },
+        {
+          "codigo": "ADM536",
+          "nombre": "Creación e Innovación de Negocios"
+        },
+        {
+          "codigo": "ADM540",
+          "nombre": "Liderazgo y Habilidades Directivas"
+        }
+      ]
+    },
+    {
+      "codigo": "E078",
+      "nombre": "Electiva II ISO-11",
+      "opciones": [
+        {
+          "codigo": "ISO110",
+          "nombre": "TIC Inclusivas"
+        },
+        {
+          "codigo": "ISO112",
+          "nombre": "Ingeniería Telemática"
+        },
+        {
+          "codigo": "ISO114",
+          "nombre": "Gestión de Procesos"
+        }
+      ]
+    },
+    {
+      "codigo": "E079",
+      "nombre": "Electiva III ISO-11",
+      "opciones": [
+        {
+          "codigo": "ISO116",
+          "nombre": "Reconocimiento de Patrones"
+        },
+        {
+          "codigo": "ISO118",
+          "nombre": "Nanotecnología"
+        },
+        {
+          "codigo": "ISO120",
+          "nombre": "Bioinformática"
+        }
+      ]
+    }
+  ],
+  "certificaciones": [
+    {
+      "nombre": "Dirección de Proyectos",
+      "materias": [
+        "ISO122"
+      ],
+      "reemplazaElectivas": true
+    },
+    {
+      "nombre": "Desarrollo en Emprendimiento",
+      "materias": [
+        "ADM202",
+        "ADM537",
+        "ADM538"
+      ],
+      "reemplazaElectivas": true,
+      "nota": "Se toman en este orden: ADM202, ADM537 y ADM538."
+    }
+  ],
+  "requisitosGraduacion": [
+    "Aprobar un deporte.",
+    "Aprobar los 8 niveles de inglés.",
+    "Actitud Profesional (60 horas).",
+    "Pasantía (150 a 300 horas)."
+  ],
+  "equivalencias": [
+    {
+      "origen": "ING701",
+      "destino": [
+        "ING716",
+        "ING717"
+      ],
+      "nota": "Física I y Laboratorio del plan anterior."
+    },
+    {
+      "origen": "ESP102",
+      "destino": [],
+      "nota": "Redacción de Textos Discursivos I del plan anterior: sin equivalente."
+    },
+    {
+      "origen": "MAT126",
+      "destino": [],
+      "nota": "Matemática Básica para Ingenieros del plan anterior: sin equivalente."
+    }
+  ]
+}

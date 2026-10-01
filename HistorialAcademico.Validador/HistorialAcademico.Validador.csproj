@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>validador-pensums</AssemblyName>
+    <RootNamespace>HistorialAcademico.Validador</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HistorialAcademico.Core\HistorialAcademico.Core.csproj" />
+    <ProjectReference Include="..\HistorialAcademico.Banner\HistorialAcademico.Banner.csproj" />
+  </ItemGroup>
+
+</Project>

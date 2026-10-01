@@ -1,0 +1,72 @@
+name: Reportar un error
+description: Algo no funciona como debería
+title: "[Error] "
+labels: ["error"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por avisar. **No pegues datos personales**: ni tu nombre, matrícula, notas, usuario o contraseña, ni capturas reales de Banner.
+        Si necesitas mostrar un archivo de Banner, anonimízalo primero (mira `tests/samples/README.md` en el repositorio).
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: Qué pasó
+      description: Cuéntalo con tus palabras. Si sale un mensaje de error, cópialo tal cual (sin datos personales).
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Cómo repetirlo
+      description: Los pasos, en orden, para que le pase lo mismo a otra persona.
+      placeholder: |
+        1. Entro a «Planificador».
+        2. Pulso «Generar plan sugerido».
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: esperaba
+    attributes:
+      label: Qué esperabas que pasara
+    validations:
+      required: true
+  - type: dropdown
+    id: donde
+    attributes:
+      label: Dónde ocurre
+      options:
+        - Sincronización con Banner
+        - Índice y materias
+        - Planificador
+        - Horarios de Banner
+        - Carrera y pénsum
+        - Perfiles, PIN o Mis datos
+        - Exportar PDF o imagen
+        - Instalación o arranque
+        - Otro
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión de la aplicación
+      description: Si la descargaste, la que dice el archivo (por ejemplo, v1.0.0); si la compilaste, el commit.
+  - type: dropdown
+    id: sistema
+    attributes:
+      label: Sistema operativo
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+        - Linux
+        - Otro
+  - type: checkboxes
+    id: privacidad
+    attributes:
+      label: Privacidad
+      options:
+        - label: Revisé que lo que escribí y adjunté no incluye datos personales.
+          required: true

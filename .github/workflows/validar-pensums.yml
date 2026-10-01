@@ -1,0 +1,50 @@
+name: Validar pénsums
+
+# Se ejecuta en cada Pull Request que toque los pénsums o su validación, y a mano desde la pestaña Actions.
+on:
+  pull_request:
+    paths:
+      - 'pensums/**'
+      - 'HistorialAcademico.Core/Pensum/**'
+      - 'HistorialAcademico.Core/Universidad/**'
+      - 'HistorialAcademico.Validador/**'
+      - '.github/workflows/validar-pensums.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Validar los JSON de pensums/
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      # 1) El JSON contra los esquemas publicados (pensums/schema.json y pensums/universidad.schema.json).
+      - name: Comprobar los JSON contra el esquema
+        run: |
+          set -u
+          fallos=0
+          for f in pensums/*/universidad.json; do
+            echo "== $f"
+            npx --yes ajv-cli@5.0.0 validate --spec=draft2020 --strict=false -s pensums/universidad.schema.json -d "$f" || fallos=1
+          done
+          for f in pensums/*/*.json; do
+            [ "$(basename "$f")" = "universidad.json" ] && continue
+            echo "== $f"
+            npx --yes ajv-cli@5.0.0 validate --spec=draft2020 --strict=false -s pensums/schema.json -d "$f" || fallos=1
+          done
+          exit $fallos
+
+      # 2) La misma validación que usa la aplicación: códigos repetidos, prerrequisitos que no existen o en ciclo,
+      #    suma de créditos, electivas con su bloque, equivalencias, carpeta y nombre de archivo, y mensajes en español.
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Validar con la herramienta del proyecto
+        run: dotnet run --project HistorialAcademico.Validador --configuration Release -- validar pensums

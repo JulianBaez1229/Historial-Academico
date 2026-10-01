@@ -1,0 +1,91 @@
+@model EstadoAcademico
+@{
+    ViewData["Title"] = "Mapa del pénsum";
+    var p = Model.Pensum;
+    var estados = new[] { EstadoMateria.Aprobada, EstadoMateria.Exenta, EstadoMateria.EnCurso, EstadoMateria.Disponible, EstadoMateria.Bloqueada };
+
+    string Detalle(EstadoMateriaPensum m)
+    {
+        var partes = new List<string>();
+        if (m.Calificacion is not null) partes.Add($"Calificación {m.Calificacion}" + (m.Periodo is null ? "" : $" ({m.Periodo})"));
+        else if (m.Estado == EstadoMateria.EnCurso && m.Periodo is not null) partes.Add($"Cursando en {m.Periodo}");
+        if (m.PorEquivalencia is not null) partes.Add($"Por equivalencia con {m.PorEquivalencia}");
+        partes.AddRange(m.Bloqueos);
+        return string.Join("|", partes);
+    }
+}
+
+<h1 class="h3 mb-3">Mapa del pénsum</h1>
+
+@if (!Model.HayPensum)
+{
+    <div class="alert alert-info">Falta cargar el pénsum. <a asp-action="Index">Sube <code>pensum_iso_unapec.csv</code></a>.</div>
+}
+else
+{
+    <div class="leyenda d-flex flex-wrap gap-3 mb-2 small">
+        @foreach (var s in estados)
+        {
+            <span class="leyenda-estado"><span class="cuadro @Ui.ClaseTarjeta(s)">@Iconos.Svg(Ui.IconoEstado(s), "icono icono-estado")</span>@Ui.Texto(s) (@p.Materias.Count(m => m.Estado == s))</span>
+        }
+    </div>
+    <p id="mapa-resumen" class="mapa-resumen small text-muted" aria-live="polite" data-inicial="Pasa el cursor (o enfoca con el teclado) una materia para ver sus requisitos y lo que desbloquea. Haz clic para ver el detalle.">
+        Pasa el cursor (o enfoca con el teclado) una materia para ver sus requisitos y lo que desbloquea. Haz clic para ver el detalle.
+    </p>
+
+    <div class="mapa">
+        @foreach (var cuat in Enumerable.Range(1, 12))
+        {
+            var materias = p.Materias.Where(m => m.Materia.Cuatrimestre == cuat).ToList();
+            <section class="mapa-columna" aria-label="Cuatrimestre @cuat">
+                <h2>Cuatrimestre @cuat<br /><span class="fw-normal">@materias.Sum(m => m.Materia.Creditos) créditos</span></h2>
+                @foreach (var m in materias)
+                {
+                    var requisitos = string.Join(",", p.Requisitos(m.Materia.Codigo));
+                    var desbloquea = string.Join(",", p.Desbloquea(m.Materia.Codigo));
+                    <button type="button" class="mapa-card @Ui.ClaseTarjeta(m.Estado)"
+                            aria-label="@m.Materia.Codigo, @m.Materia.Nombre, @m.Materia.Creditos créditos, @Ui.Texto(m.Estado)"
+                            data-codigo="@m.Materia.Codigo"
+                            data-nombre="@m.Materia.Nombre"
+                            data-creditos="@m.Materia.Creditos"
+                            data-cuatrimestre="@m.Materia.Cuatrimestre"
+                            data-prerrequisitos="@Ui.PrerrequisitoTexto(m.Materia.Prerrequisitos)"
+                            data-prereq="@requisitos"
+                            data-desbloquea="@desbloquea"
+                            data-estado="@Ui.Texto(m.Estado)"
+                            data-badge="@Ui.Badge(m.Estado)"
+                            data-detalle="@Detalle(m)"
+                            data-url="@Url.Action(m.CuentaComoAprobada ? "DetalleMateriaTomada" : "DetalleMateriaFaltante", "Estudiante", new { codigo = m.Materia.Codigo })">
+                        <span class="codigo">
+                            <span class="codigo-texto">@Iconos.Svg(Ui.IconoEstado(m.Estado), "icono icono-estado")@m.Materia.Codigo</span>
+                            <span class="creditos">@m.Materia.Creditos cr</span>
+                        </span>
+                        <span>@m.Materia.Nombre</span>
+                    </button>
+                }
+            </section>
+        }
+    </div>
+
+    <div class="modal fade" id="modalMateria" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="modalTitulo"></h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p><span id="modalEstado" class="badge"></span></p>
+                <dl class="row mb-0">
+                    <dt class="col-5">Créditos</dt><dd class="col-7" id="modalCreditos"></dd>
+                    <dt class="col-5">Cuatrimestre</dt><dd class="col-7" id="modalCuatrimestre"></dd>
+                    <dt class="col-5">Prerrequisito</dt><dd class="col-7" id="modalPrerrequisitos"></dd>
+                </dl>
+                <div id="modalDetalleBloque" class="mt-3"><ul id="modalDetalle" class="mb-0"></ul></div>
+            </div>
+            <div class="modal-footer">
+                <a id="modalFicha" class="btn btn-primary">Ver ficha completa</a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div></div>
+    </div>
+}

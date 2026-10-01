@@ -1,0 +1,62 @@
+name: Pedir o aportar un pénsum
+description: Mi carrera o mi universidad no está en la aplicación
+title: "[Pénsum] "
+labels: ["pensum"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Un pénsum es información pública del plan de estudios: materias, créditos y prerrequisitos. **No incluyas datos personales** (tus notas, matrícula, nombre o profesores).
+        ¿Puedes prepararlo tú? Sigue la guía paso a paso (`CONTRIBUTING-pensums.md`, en la raíz del repositorio): no hace falta programar. Si no, este _issue_ sirve para pedirlo.
+  - type: input
+    id: universidad
+    attributes:
+      label: Universidad
+      placeholder: Universidad de Ejemplo
+    validations:
+      required: true
+  - type: input
+    id: carrera
+    attributes:
+      label: Carrera y plan (año o versión)
+      placeholder: Derecho, plan 2022
+    validations:
+      required: true
+  - type: input
+    id: fuente
+    attributes:
+      label: De dónde sale el plan
+      description: Enlace a la página oficial o al documento del plan de estudios de tu universidad.
+    validations:
+      required: true
+  - type: dropdown
+    id: banner
+    attributes:
+      label: ¿Tu universidad usa Banner?
+      options:
+        - Sí
+        - No
+        - No sé
+    validations:
+      required: true
+  - type: textarea
+    id: reglas
+    attributes:
+      label: Reglas de tu universidad (si las sabes)
+      description: Escala de calificaciones (letras y puntos), períodos del año (cuatrimestres, semestres…) y máximo de créditos por período.
+  - type: dropdown
+    id: quien
+    attributes:
+      label: ¿Quién lo prepara?
+      options:
+        - Yo lo preparo y abriré un Pull Request
+        - Necesito que alguien lo prepare
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacidad
+    attributes:
+      label: Privacidad
+      options:
+        - label: Lo que escribí no incluye datos personales.
+          required: true

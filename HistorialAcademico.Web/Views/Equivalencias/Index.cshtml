@@ -1,0 +1,120 @@
+@model EquivalenciasViewModel
+@{
+    ViewData["Title"] = "Equivalencias";
+}
+
+<h1 class="h3 mb-2">Equivalencias</h1>
+<p class="text-muted">
+    Relacionan una materia de Banner (por ejemplo del plan anterior) con una o varias del pénsum actual.
+    Una materia de Banner con equivalencia aprueba las materias del pénsum indicadas. Si se deja el código del pénsum vacío,
+    la materia queda como <em>sin equivalente</em>. Para una materia que equivale a dos (ING701 → ING716 + ING717) se crean dos filas.
+    Una aprobación directa de la materia del pénsum tiene prioridad sobre la equivalencia.
+    Las que agregas aquí son <strong>tuyas</strong>; además, tu pénsum puede traer las suyas (abajo).
+</p>
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger">@Model.Error</div> }
+
+<datalist id="codigosPensum">
+    @foreach (var m in Model.MateriasPensum) { <option value="@m.Key">@m.Value</option> }
+</datalist>
+
+@* Un <form> no puede ir dentro de <tr>: cada fila tiene su formulario en la primera celda y los campos se enlazan con form="...". *@
+<table class="table align-middle">
+    <thead>
+        <tr><th style="width:140px">Código en Banner</th><th style="width:170px">Código en el pénsum</th><th>Nota</th><th style="width:170px"></th></tr>
+    </thead>
+    <tbody>
+    @foreach (var e in Model.Lista)
+    {
+        var f = $"fila{e.Id}";
+        <tr>
+            <td>
+                <form id="@f" asp-action="Guardar" method="post"><input type="hidden" name="id" value="@e.Id" /></form>
+                <input form="@f" name="codigoBanner" value="@e.CodigoBanner" class="form-control form-control-sm" required />
+            </td>
+            <td>
+                <input form="@f" name="codigoPensum" value="@e.CodigoPensum" list="codigosPensum" class="form-control form-control-sm" placeholder="sin equivalente" />
+                @if (e.CodigoPensum is not null && Model.MateriasPensum.TryGetValue(e.CodigoPensum, out var nombre))
+                {
+                    <div class="form-text">@nombre</div>
+                }
+                @if (Model.SinEfecto.Contains(e.Id))
+                {
+                    <div class="form-text fw-semibold" data-aviso="sin-efecto">Sin efecto: @e.CodigoPensum no está en el pénsum actual.</div>
+                }
+                @if (Model.YaDeclaradas.Contains(e.Id))
+                {
+                    <div class="form-text" data-aviso="ya-declarada">Tu pénsum ya declara esta equivalencia; puedes borrar la tuya.</div>
+                }
+            </td>
+            <td><input form="@f" name="nota" value="@e.Nota" class="form-control form-control-sm" /></td>
+            <td class="text-nowrap">
+                <button form="@f" type="submit" class="btn btn-sm btn-outline-primary">Guardar</button>
+                <button form="@f" type="submit" formaction="@Url.Action("Eliminar")" class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm('¿Eliminar esta equivalencia?');">Eliminar</button>
+            </td>
+        </tr>
+    }
+    @if (Model.Lista.Count == 0)
+    {
+        <tr><td colspan="4" class="text-muted">No hay equivalencias registradas.</td></tr>
+    }
+    <tr class="table-light">
+        <td>
+            <form id="filaNueva" asp-action="Guardar" method="post"><input type="hidden" name="id" value="0" /></form>
+            <input form="filaNueva" name="codigoBanner" class="form-control form-control-sm" placeholder="ING701" required />
+        </td>
+        <td><input form="filaNueva" name="codigoPensum" list="codigosPensum" class="form-control form-control-sm" placeholder="sin equivalente" /></td>
+        <td><input form="filaNueva" name="nota" class="form-control form-control-sm" placeholder="Nota (opcional)" /></td>
+        <td><button form="filaNueva" type="submit" class="btn btn-sm btn-primary">Agregar</button></td>
+    </tr>
+    </tbody>
+</table>
+
+@* ── Las que declara el pénsum ──────────────────────────────────────────────────────────────── *@
+<div class="card mt-4" id="declaradas">
+    <div class="card-body">
+        <h2 class="h5">Equivalencias de tu pénsum</h2>
+        @if (Model.Activo is null)
+        {
+            <p class="text-muted mb-0" id="sin-pensum-activo">
+                Tu pénsum se cargó a mano, así que no trae equivalencias propias. Si eliges uno del catálogo en
+                <a asp-controller="Carrera" asp-action="Index">Carrera y pénsum</a>, aparecerán aquí las que declare.
+            </p>
+        }
+        else if (Model.Declaradas.Count == 0)
+        {
+            <p class="text-muted mb-0">El pénsum de <strong>@Model.Activo.NombreCarrera</strong> (plan @Model.Activo.Version) no declara equivalencias.</p>
+        }
+        else
+        {
+            <p class="small text-muted">
+                Las declara el pénsum de <strong>@Model.Activo.NombreCarrera</strong> (plan @Model.Activo.Version) para los planes anteriores.
+                Se usan junto con las tuyas y no se pueden editar aquí.
+            </p>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0" id="tabla-declaradas">
+                    <thead><tr><th>Código en Banner</th><th>Código en el pénsum</th><th>Nota</th></tr></thead>
+                    <tbody>
+                    @foreach (var d in Model.Declaradas)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@d.CodigoBanner</td>
+                            <td>
+                                @if (d.CodigoPensum is null) { <em>sin equivalente</em> }
+                                else
+                                {
+                                    <span class="fw-semibold">@d.CodigoPensum</span>
+                                    @if (Model.MateriasPensum.TryGetValue(d.CodigoPensum, out var nombreDeclarada)) { <span class="text-muted"> @nombreDeclarada</span> }
+                                }
+                            </td>
+                            <td class="small text-muted">@d.Nota</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,33 @@
+@model AsistentePerfilViewModel
+@{
+    ViewData["Title"] = "Tu perfil";
+    Layout = "_LayoutSimple";
+}
+
+<div class="acceso-tarjeta">
+    @if (Model.EnAsistente) { <partial name="_Pasos" model="new PasosViewModel(2)" /> }
+
+    <h1 class="h4">Tu perfil</h1>
+    <p class="text-muted">Tu perfil ya está creado. Aquí puedes cambiarle el nombre.</p>
+
+    @if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+    <form asp-controller="Asistente" asp-action="Perfil" method="post" novalidate>
+        <div class="mb-3">
+            <label class="form-label" for="nombre">Tu nombre</label>
+            <input id="nombre" name="nombre" class="form-control" value="@Model.Nombre" maxlength="40" autocomplete="off" />
+        </div>
+        <p class="small text-muted">
+            @(Model.TienePin ? "Tu perfil está protegido con un PIN." : "Tu perfil no tiene PIN: se abre directo.")
+        </p>
+        @if (Model.EnAsistente)
+        {
+            <button type="submit" class="btn btn-primary">Continuar</button>
+        }
+        else
+        {
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-link" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+        }
+    </form>
+</div>

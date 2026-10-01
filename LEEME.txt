@@ -1,0 +1,25 @@
+HISTORIAL ACADEMICO
+===================
+
+Proyecto independiente: no esta afiliado ni avalado por ninguna universidad.
+
+Como usarlo
+-----------
+1. Abre HistorialAcademico.Web.exe (en Windows) o HistorialAcademico.Web (en macOS y Linux).
+2. Se abre una ventana negra: dejala abierta mientras usas la aplicacion. Al cerrarla, la aplicacion termina.
+3. Tu navegador se abre solo en http://localhost:5296 (si ese puerto esta ocupado, usa el siguiente libre y te lo dice).
+4. La primera vez descarga el navegador que usa para conectarse a Banner (Chromium, unos 150 MB). Necesita internet y puede tardar unos minutos.
+5. Sigue el asistente: crea tu perfil, elige tu carrera y, si quieres, conecta Banner.
+
+Tu informacion
+--------------
+Todo se guarda en tu computadora, en tu carpeta de usuario (en Windows: %LOCALAPPDATA%\HistorialAcademico).
+Nada sale de tu equipo salvo lo que tu misma pidas: conectarte a Banner de tu universidad y la consulta de nuevas versiones del programa
+(la puedes desactivar en la aplicacion). La aplicacion nunca ve tu contrasena: inicias sesion tu en la ventana de Banner.
+Para borrar todo, usa "Mis datos" en el menu y luego elimina esta carpeta.
+
+Mas informacion, guia para agregar tu carrera y codigo fuente: en el repositorio del proyecto (pestana Releases).
+Licencia MIT (archivo LICENSE).
+
+macOS y Linux: el programa se publica tambien para esos sistemas, pero solo se prueba de forma automatica en Windows.
+Si algo no funciona, abre un issue contando el sistema que usas (sin datos personales).

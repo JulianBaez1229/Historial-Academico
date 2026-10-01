@@ -1,0 +1,39 @@
+name: Compilar y probar
+
+# Se ejecuta en cada Pull Request hacia main y a mano desde la pestaña Actions.
+# Compila sin advertencias, corre todas las pruebas y valida los pénsums. Solo lee el repositorio: no usa credenciales.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probar:
+    name: Compilar, probar y validar pénsums
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Las advertencias cuentan como errores: el proyecto compila sin ninguna.
+      - name: Compilar
+        run: dotnet build --configuration Release -warnaserror
+
+      # Algunas pruebas dibujan la aplicación con un navegador de verdad (temas, PDF, imágenes).
+      - name: Instalar el navegador de las pruebas
+        run: pwsh HistorialAcademico.Banner/bin/Release/net8.0/playwright.ps1 install chromium
+
+      - name: Correr las pruebas
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal"
+
+      - name: Validar los pénsums
+        run: dotnet run --project HistorialAcademico.Validador --configuration Release --no-build -- validar pensums

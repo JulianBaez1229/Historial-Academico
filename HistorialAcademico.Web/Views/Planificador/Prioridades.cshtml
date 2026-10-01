@@ -1,0 +1,73 @@
+@model EstadoPlanificador
+@using HistorialAcademico.Core.Planificacion
+@{
+    ViewData["Title"] = "Qué priorizar";
+    ViewData["Pestana"] = "prioridades";
+    var ctx = Model.Contexto;
+    var pri = Model.Prioridades;
+}
+
+<h1 class="h3 mb-3">Planificador de cuatrimestres</h1>
+<partial name="_Pestanas" />
+
+@if (ctx is null || pri is null)
+{
+    <div class="alert alert-info">@Model.NoPuedePlanificar</div>
+    return;
+}
+
+<h2 class="h5">Qué priorizar</h2>
+<p class="text-muted">
+    Todas las materias que te faltan, de mayor a menor prioridad. La puntuación suma tres cosas, y cada fila explica su motivo:
+</p>
+<ul class="small text-muted">
+    <li><strong>Ruta crítica</strong>: @CalculadoraPrioridades.PuntosPorPasoDeCadena puntos por cada materia de la cadena más larga que depende de ella (directa o indirectamente); retrasarla retrasa la graduación.</li>
+    <li><strong>Materias que desbloquea</strong>: @CalculadoraPrioridades.PuntosPorDesbloqueo puntos por cada materia que queda disponible al aprobarla.</li>
+    <li><strong>Rezagada</strong>: +@CalculadoraPrioridades.PuntosRezagada puntos si su cuatrimestre del pénsum es menor que tu nivel actual (<strong>cuatrimestre @pri.NivelActual</strong>: el más alto con la mayoría de sus materias aprobadas o en curso).</li>
+    <li><strong>Bloqueada por %</strong>: las materias con un porcentaje de créditos pendiente (Seminario de Grado, electivas) no se pueden adelantar; se indica en qué período se estima que se cumple.</li>
+    <li>El <strong>TFG</strong> va siempre en el último período y la <strong>pasantía</strong> en su cuatrimestre del pénsum.</li>
+</ul>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th><th>Código</th><th>Asignatura</th><th class="text-end">Créd.</th><th class="text-center">Cuat.</th>
+                    <th>Etiquetas</th><th>Desbloquea</th><th class="text-end">Puntos</th><th>Estado</th><th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{ var n = 0; }
+            @foreach (var m in pri.Materias)
+            {
+                n++;
+                <tr>
+                    <td class="text-muted">@n</td>
+                    <td><a asp-controller="Estudiante" asp-action="DetalleMateriaFaltante" asp-route-codigo="@m.Materia.Codigo">@m.Materia.Codigo</a></td>
+                    <td>@m.Materia.Nombre</td>
+                    <td class="text-end">@m.Materia.Creditos</td>
+                    <td class="text-center">@m.Materia.Cuatrimestre</td>
+                    <td>
+                        @foreach (var t in m.Etiquetas)
+                        {
+                            <span class="badge @(t == "Rezagada" ? "bg-warning text-dark" : t == "Ruta crítica" ? "bg-danger" : "bg-secondary")">@t</span>
+                        }
+                    </td>
+                    <td title="@string.Join(", ", m.Desbloquea)">@m.Desbloquea.Count</td>
+                    <td class="text-end fw-semibold">@m.Puntos</td>
+                    <td>
+                        <span class="badge @Ui.Badge(m.Estado.Estado)">@Ui.Texto(m.Estado.Estado)</span>
+                        @foreach (var b in m.Estado.Bloqueos) { <div class="small text-muted">@b</div> }
+                        @if (m.PorcentajeRequerido is not null)
+                        {
+                            <div class="small">@m.PorcentajeRequerido% de créditos: <strong>@m.PeriodoPorcentaje</strong></div>
+                        }
+                    </td>
+                    <td class="small text-muted">@m.Motivo</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

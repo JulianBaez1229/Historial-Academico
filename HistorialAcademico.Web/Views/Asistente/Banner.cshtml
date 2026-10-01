@@ -1,0 +1,81 @@
+@model AsistenteBannerViewModel
+@{
+    ViewData["Title"] = "Conectar Banner";
+    Layout = "_LayoutSimple";
+}
+
+<div class="acceso-tarjeta">
+    @if (Model.EnAsistente) { <partial name="_Pasos" model="new PasosViewModel(4)" /> }
+
+    <h1 class="h4">Conectar Banner <span class="badge bg-secondary align-middle">Opcional</span></h1>
+
+    @if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+    @if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+    @if (Model.HayBanner)
+    {
+        <p>
+            Conectando Banner la aplicación trae tu histórico académico sola, sin que lo escribas a mano.
+            @if (Model.NombreUniversidad is not null) { <text>Se usará la página de Banner de <strong>@Model.NombreUniversidad</strong> (<code>@Model.HostBanner</code>).</text> }
+            else { <text>Se usará <code>@Model.HostBanner</code>.</text> }
+        </p>
+        <ol class="asistente-privacidad">
+            <li>Se abre una ventana de Chromium con la página de inicio de sesión de tu universidad.</li>
+            <li>Inicias sesión <strong>tú mismo</strong> (con tu verificación en dos pasos si te la pide). La aplicación nunca ve tu usuario ni tu contraseña.</li>
+            <li>Cuando entras, la ventana se cierra sola y la aplicación trae tu histórico. Tienes hasta 5 minutos.</li>
+        </ol>
+        <p class="small text-muted">La sesión queda guardada solo en tu carpeta. Si caduca, la aplicación te avisa y vuelve a abrir la ventana para que inicies sesión de nuevo.</p>
+        @if (Model.TieneHistorico)
+        {
+            <div class="alert alert-info" role="status" id="ya-conectado">Ya hay un histórico en tu perfil. Si conectas de nuevo, se actualiza con lo que muestre Banner ahora.</div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning" role="status" id="sin-banner">
+            @if (Model.NombreUniversidad is null) { <text>Todavía no elegiste tu universidad, y sin ella no sé a qué Banner conectarme. Vuelve al paso anterior o sáltate este.</text> }
+            else { <text>@Model.NombreUniversidad no tiene una página de Banner configurada, así que no puedo conectarme. Puedes omitir este paso.</text> }
+        </div>
+    }
+
+    <p class="small text-muted" id="sin-banner-aviso">
+        ¿Prefieres no conectar Banner, o tu universidad no lo usa? Omite este paso: después puedes registrar tus materias a mano o importarlas
+        de un CSV en «Materias a mano», del menú «Datos».
+    </p>
+
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        @if (Model.EnAsistente) { <a class="btn btn-outline-secondary" asp-action="Carrera">Atrás</a> }
+        @if (Model.HayBanner)
+        {
+            <form asp-action="Conectar" method="post" id="form-conectar" class="d-inline">
+                <button type="submit" class="btn btn-primary" id="btn-conectar">Conectar Banner y traer mi histórico</button>
+            </form>
+        }
+        @if (Model.EnAsistente)
+        {
+            <form asp-action="Terminar" method="post" class="d-inline">
+                <button type="submit" class="btn @(Model.HayBanner ? "btn-outline-secondary" : "btn-primary")">Omitir y terminar</button>
+            </form>
+        }
+        else
+        {
+            <a class="btn btn-link" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+        }
+    </div>
+    <p id="esperando" class="small text-muted mt-3 mb-0" hidden role="status">
+        Se abrirá una ventana de Chromium: inicia sesión ahí y no la cierres, se cierra sola cuando termina. Puede tardar unos minutos.
+    </p>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var f = document.getElementById('form-conectar');
+            if (!f) return;
+            f.addEventListener('submit', function () {
+                document.getElementById('btn-conectar').disabled = true;
+                document.getElementById('esperando').hidden = false;
+            });
+        })();
+    </script>
+}

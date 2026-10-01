@@ -1,0 +1,81 @@
+@model DetalleTomadaViewModel
+@{
+    var m = Model.Principal;
+    var e = Model.Estado;
+    ViewData["Title"] = m.Codigo;
+    var letraPuntos = e.Reglas.Escala.PuntosPorLetra(m.Calificacion);
+    var cuenta = e.Reglas.Escala.CuentaParaIndice(m.Calificacion);
+    var equivalentes = e.EquivalentesDe(m.Codigo);
+}
+
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-action="MateriasTomadas">Materias Tomadas</a></li>
+    <li class="breadcrumb-item active" aria-current="page">@m.Codigo</li>
+</ol></nav>
+
+<h1 class="h3 mb-3">@m.Codigo – @Ui.Nombre(e, m.Codigo, m.Titulo)</h1>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Código</dt><dd class="col-sm-8">@m.Codigo</dd>
+            <dt class="col-sm-4">Asignatura</dt><dd class="col-sm-8">@Ui.Nombre(e, m.Codigo, m.Titulo)</dd>
+            <dt class="col-sm-4">Créditos</dt><dd class="col-sm-8">@Ui.Num(m.HorasCredito)</dd>
+            <dt class="col-sm-4">Período</dt><dd class="col-sm-8">@m.Periodo?.Nombre</dd>
+            <dt class="col-sm-4">Calificación</dt>
+            <dd class="col-sm-8">@m.Calificacion @if (m.Calificacion == "E") { <span class="badge bg-info">Exenta</span> }</dd>
+            <dt class="col-sm-4">Puntos por letra</dt><dd class="col-sm-8">@(letraPuntos is null ? "— (la exenta no tiene puntos)" : letraPuntos.ToString())</dd>
+            <dt class="col-sm-4">Puntos de calidad</dt><dd class="col-sm-8">@Ui.Num(m.PuntosCalidad) <span class="text-muted small">(puntos por letra × créditos)</span></dd>
+            <dt class="col-sm-4">¿Cuenta para el índice?</dt>
+            <dd class="col-sm-8">@(cuenta ? "Sí" : "No")
+                @if (!cuenta && m.Calificacion == "E") { <span class="text-muted small">— cuenta como aprobada pero no entra en el índice</span> }</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">Pénsum</div>
+    <div class="card-body">
+        @if (Model.Pensum is null)
+        {
+            <p class="mb-1"><span class="badge bg-warning text-dark">Plan anterior</span> Esta materia no está en el pénsum actual.</p>
+            @if (equivalentes.Count > 0)
+            {
+                <p class="mb-0">Equivale a: @string.Join(" + ", equivalentes.Select(c => c + " – " + (e.BuscarPensum(c)?.Nombre ?? "?")))</p>
+            }
+            else if (e.SinEquivalente(m.Codigo))
+            {
+                <p class="mb-0">Registrada como <em>sin equivalente</em> en el pénsum actual.</p>
+            }
+            else
+            {
+                <p class="mb-0 text-muted">No tiene equivalencia registrada. Puedes agregarla en <a asp-controller="Equivalencias" asp-action="Index">Equivalencias</a>.</p>
+            }
+        }
+        else
+        {
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Cuatrimestre</dt><dd class="col-sm-8">@Model.Pensum.Cuatrimestre</dd>
+                <dt class="col-sm-4">Prerrequisito</dt><dd class="col-sm-8">@Ui.PrerrequisitoTexto(Model.Pensum.Prerrequisitos)</dd>
+            </dl>
+        }
+    </div>
+</div>
+
+@if (Model.Intentos.Count > 1)
+{
+    <div class="card mb-3">
+        <div class="card-header">Intentos (la materia se cursó @Model.Intentos.Count veces)</div>
+        <table class="table table-sm mb-0">
+            <thead><tr><th>Período</th><th>Calificación</th><th class="text-end">Puntos</th></tr></thead>
+            <tbody>
+            @foreach (var i in Model.Intentos)
+            {
+                <tr><td>@i.Periodo?.Nombre</td><td>@i.Calificacion</td><td class="text-end">@Ui.Num(i.PuntosCalidad)</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+<a asp-action="MateriasTomadas" class="btn btn-outline-secondary">← Volver a Materias Tomadas</a>

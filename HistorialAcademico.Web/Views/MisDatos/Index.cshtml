@@ -1,0 +1,151 @@
+@model MisDatosViewModel
+@{
+    ViewData["Title"] = "Mis datos y privacidad";
+    var c = Model.Conteo;
+    string Tamano(long bytes) => bytes >= 1024 * 1024 ? $"{bytes / 1024.0 / 1024.0:0.0} MB" : $"{Math.Max(1, (bytes + 1023) / 1024)} KB";
+}
+
+<h1 class="h3 mb-2">Mis datos y privacidad</h1>
+<p class="text-muted">
+    Tus datos son tuyos y viven solo en este equipo. No hay servidor central: la aplicación no envía tus datos a ningún lado. Solo se conecta a
+    Banner cuando se lo pides y, si no lo apagas más abajo, a GitHub para saber si hay una versión nueva. Aquí ves qué hay
+    guardado, te llevas una copia o lo borras todo.
+</p>
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert" id="error-datos">@Model.Error</div> }
+
+<div class="card mb-3" id="que-hay">
+    <div class="card-body">
+        <h2 class="h5">Qué hay guardado y dónde</h2>
+        @if (Model.PuedeBorrar)
+        {
+            <p class="mb-2">Perfil <strong>@Model.NombrePerfil</strong>, en tu carpeta: <code>@Model.Carpeta</code></p>
+        }
+        else
+        {
+            <p class="mb-2">La aplicación está usando una base de datos fija, sin perfiles: <code>@Model.Carpeta</code></p>
+        }
+        <ul class="mb-2">
+            <li>Base de datos (<code>historial.db</code>): @Tamano(Model.BytesBase). Con @c.Periodos @(c.Periodos == 1 ? "período" : "períodos") de histórico
+                (@c.MateriasCursadas @(c.MateriasCursadas == 1 ? "materia" : "materias")), @c.CursosEnProgreso @(c.CursosEnProgreso == 1 ? "curso en progreso" : "cursos en progreso"),
+                @c.MateriasManuales @(c.MateriasManuales == 1 ? "materia a mano" : "materias a mano"), @c.MateriasPensum materias de pénsum,
+                @c.Planes @(c.Planes == 1 ? "escenario" : "escenarios") de planificación, @c.Horarios @(c.Horarios == 1 ? "horario tentativo" : "horarios tentativos")
+                y @c.Equivalencias @(c.Equivalencias == 1 ? "equivalencia" : "equivalencias").</li>
+            <li>Sesión de Banner: @(Model.HaySesionBanner ? "guardada. Es como una llave: quien la tenga puede entrar a tu Banner mientras no caduque." : "no hay ninguna guardada.")</li>
+            @if (Model.HayCapturasBanner) { <li>Capturas de las páginas de Banner que se consultaron (con tus datos).</li> }
+            @if (Model.TienePin) { <li>Tu PIN, guardado solo de forma cifrada (no se puede leer de vuelta).</li> }
+        </ul>
+        <p class="small text-muted mb-0">
+            Tu usuario y tu contraseña de Banner no se guardan en ningún lado: inicias sesión tú mismo en el navegador.
+            Los archivos no están cifrados; si compartes la computadora, protege tu usuario de Windows.
+        </p>
+    </div>
+</div>
+
+<div class="card mb-3" id="exportar">
+    <div class="card-body">
+        <h2 class="h5">Llevarme una copia</h2>
+        <p>
+            Un archivo JSON con tu perfil, tu pénsum, tu histórico, las materias a mano, las equivalencias, tus escenarios del planificador y tus
+            horarios. No incluye tu PIN ni la sesión de Banner.
+        </p>
+        <a class="btn btn-primary" asp-action="Exportar" id="descargar-datos">Descargar mis datos (JSON)</a>
+        <p class="small text-muted mt-2 mb-0">El archivo tampoco va cifrado y trae tus calificaciones: guárdalo en un lugar que sea solo tuyo.</p>
+    </div>
+</div>
+
+@{ var act = Model.Actualizaciones; }
+<div class="card mb-3" id="actualizaciones">
+    <div class="card-body">
+        <h2 class="h5">Avisos de versiones nuevas</h2>
+        <p class="mb-2">Versión que estás usando: <strong>@act.Version</strong>.</p>
+        @if (!act.Disponible)
+        {
+            <p class="mb-0" id="actualizaciones-no-disponible">
+                Este programa no consulta versiones nuevas: solo lo hace el programa descargado de la pestaña Releases del proyecto. Quien lo compila
+                desde el código no recibe avisos ni se conecta a nada.
+            </p>
+        }
+        else
+        {
+            <p class="mb-2">
+                @if (act.Avisar)
+                {
+                    <text>Al abrir la aplicación se pregunta a GitHub cuál es la última versión publicada de <code>@act.Repositorio</code>. Es una sola consulta pública:
+                    GitHub ve tu dirección IP y el nombre y la versión del programa, nada más. No se envía ni se guarda ningún dato tuyo.</text>
+                }
+                else
+                {
+                    <text>Los avisos están <strong>apagados</strong>: la aplicación no se conecta a GitHub ni a ningún otro lado por su cuenta.</text>
+                }
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <form asp-controller="Actualizaciones" asp-action="Preferencia" method="post">
+                    <input type="hidden" name="avisar" value="@(act.Avisar ? "false" : "true")" />
+                    <button type="submit" class="btn @(act.Avisar ? "btn-outline-secondary" : "btn-primary")" id="alternar-avisos">
+                        @(act.Avisar ? "Apagar los avisos" : "Encender los avisos")
+                    </button>
+                </form>
+                @if (act.Avisar)
+                {
+                    <form asp-controller="Actualizaciones" asp-action="BuscarAhora" method="post">
+                        <button type="submit" class="btn btn-outline-secondary" id="buscar-ahora">Buscar ahora</button>
+                    </form>
+                }
+            </div>
+            <p class="small text-muted mt-2 mb-0">Esta preferencia vale para todos los perfiles de este equipo.</p>
+        }
+    </div>
+</div>
+
+@if (Model.PuedeBorrar)
+{
+    <div class="card mb-3" id="borrar-sesion">
+        <div class="card-body">
+            <h2 class="h5">Borrar solo la sesión de Banner</h2>
+            <p>Quita la sesión guardada y las capturas de sus páginas, y deja tus datos como están. La próxima vez que conectes Banner tendrás que iniciar sesión otra vez.</p>
+            <form asp-action="BorrarSesion" method="post" onsubmit="return confirm('¿Borrar la sesión de Banner guardada?');">
+                <button type="submit" class="btn btn-outline-secondary" @(Model.HaySesionBanner || Model.HayCapturasBanner ? "" : "disabled")>Borrar la sesión de Banner</button>
+                @if (!Model.HaySesionBanner && !Model.HayCapturasBanner) { <span class="small text-muted ms-2">No hay nada que borrar.</span> }
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-3 border-danger" id="borrar-todo">
+        <div class="card-body">
+            <h2 class="h5 text-danger">Borrar todos mis datos</h2>
+            <p>
+                Borra <strong>todo</strong> lo de este perfil: la base de datos (histórico, materias a mano, planes, horarios), la sesión de Banner y el perfil
+                mismo. <strong>No se puede deshacer.</strong> Si quieres conservar algo, descarga antes tu copia.
+            </p>
+            <form asp-action="BorrarTodo" method="post" class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label for="confirmacion" class="form-label">Para confirmar, escribe el nombre de tu perfil: <strong>@Model.NombrePerfil</strong></label>
+                    <input id="confirmacion" name="confirmacion" class="form-control" autocomplete="off" maxlength="40" />
+                </div>
+                @if (Model.TienePin)
+                {
+                    <div class="col-md-4">
+                        <label for="pin" class="form-label">Tu PIN</label>
+                        <input id="pin" name="pin" type="password" class="form-control" autocomplete="off" maxlength="64" />
+                    </div>
+                }
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-danger w-100">Borrar todo</button>
+                </div>
+            </form>
+            @if (Model.BaseAnterior is not null)
+            {
+                <p class="small text-muted mt-3 mb-0" id="base-anterior">
+                    Ojo: en tu computadora sigue el archivo de la versión anterior de la aplicación (<code>@Model.BaseAnterior</code>). No es de ningún perfil,
+                    así que no lo borro desde aquí; si ya no lo quieres, bórralo tú.
+                </p>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-info" id="sin-perfil">Con una base fija no hay perfil que borrar desde aquí: los datos son el archivo de arriba.</div>
+}

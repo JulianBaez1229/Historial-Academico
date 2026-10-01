@@ -1,0 +1,9 @@
+@* Pestañas del planificador. Se pasa la pestaña activa en ViewData["Pestana"]. *@
+@{
+    var activa = ViewData["Pestana"] as string;
+}
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link @(activa == "plan" ? "active" : "")" asp-action="Index">Plan por cuatrimestres</a></li>
+    <li class="nav-item"><a class="nav-link @(activa == "prioridades" ? "active" : "")" asp-action="Prioridades">Qué priorizar</a></li>
+    <li class="nav-item"><a class="nav-link @(activa == "comparar" ? "active" : "")" asp-action="Comparar">Comparar escenarios</a></li>
+</ul>

@@ -1,0 +1,12 @@
+@model HistorialAcademico.Web.Services.AvisoActualizacion
+<div class="alert alert-secondary aviso-version py-2 px-3 mb-3 d-flex flex-wrap align-items-center gap-2" id="aviso-version" role="status">
+    <span>
+        Hay una versión nueva: <strong>@Model.Version</strong> (tienes la @Model.Actual).
+        <a href="@Model.Url" target="_blank" rel="noopener noreferrer">Ver qué trae y descargarla</a>
+    </span>
+    <form asp-controller="Actualizaciones" asp-action="Ignorar" method="post" class="ms-auto">
+        <input type="hidden" name="version" value="@Model.Version" />
+        <input type="hidden" name="volverA" value="@(Context.Request.Path + Context.Request.QueryString)" />
+        <button type="submit" class="btn btn-sm btn-outline-secondary" title="No volver a avisar de esta versión">Ignorar esta versión</button>
+    </form>
+</div>

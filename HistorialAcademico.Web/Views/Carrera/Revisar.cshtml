@@ -1,0 +1,146 @@
+@model RevisarViewModel
+@{
+    ViewData["Title"] = "Revisar el pénsum";
+    var c = Model.Construccion;
+}
+
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-action="Index">Carrera y pénsum</a></li>
+    <li class="breadcrumb-item"><a asp-action="Importar">Importar un pénsum</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Revisar</li>
+</ol></nav>
+
+<h1 class="h3 mb-2">Revisa el pénsum</h1>
+<p class="text-muted">
+    Esto es lo que entendí del texto. Corrige lo que haga falta en la tabla (puedes cambiar cualquier valor, marcar una fila para quitarla o agregar filas),
+    pulsa «Revisar» para validar y, cuando no haya problemas, «Guardar como pénsum personal».
+</p>
+
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert" id="error-guardar">@Model.Error</div> }
+@foreach (var a in Model.Avisos.Take(20)) { <div class="alert alert-warning py-2 mb-2 aviso-lectura">@a</div> }
+
+<form asp-action="Revisar" method="post" id="form-revisar">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label for="nombreCarrera" class="form-label">Nombre de la carrera</label>
+                    <input id="nombreCarrera" name="nombreCarrera" class="form-control" maxlength="100" value="@Model.NombreCarrera" required />
+                </div>
+                <div class="col-md-3">
+                    <label for="version" class="form-label">Versión del plan</label>
+                    <input id="version" name="version" class="form-control" maxlength="20" value="@Model.Version" required />
+                </div>
+                <div class="col-md-4">
+                    <label for="universidad" class="form-label">Reglas de la universidad</label>
+                    <select id="universidad" name="universidad" class="form-select">
+                        @foreach (var u in Model.Universidades)
+                        {
+                            <option value="@u.Id" selected="@(u.Id == Model.Universidad)">@u.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            @if (Model.ErrorDatos is not null) { <div class="text-danger mt-2" id="error-datos" role="alert">@Model.ErrorDatos</div> }
+        </div>
+    </div>
+
+    @* ── Resultado de la validación ─────────────────────────────────────────────────────────── *@
+    @if (c is not null)
+    {
+        @if (c.EsValido && Model.ErrorDatos is null)
+        {
+            <div class="alert alert-success" role="status" id="pensum-valido">
+                El pénsum es válido: <strong>@c.Resultado.Definicion!.Materias.Count materias</strong>, <strong>@c.TotalCreditos créditos</strong> y
+                <strong>@c.Cuatrimestres cuatrimestres</strong>.
+                @foreach (var a in c.Resultado.Advertencias) { <div class="small">@a</div> }
+            </div>
+        }
+        else if (c.ErroresGenerales.Count > 0 || c.ErroresPorFila.Count > 0)
+        {
+            <div class="alert alert-danger" role="alert" id="pensum-con-problemas">
+                <strong>Hay problemas por corregir</strong> (@(c.ErroresPorFila.Sum(e => e.Value.Count) + c.ErroresGenerales.Count)):
+                <ul class="mb-0">
+                    @foreach (var e in c.ErroresGenerales) { <li>@e</li> }
+                    <li>@c.ErroresPorFila.Count filas con problemas, marcadas abajo.</li>
+                </ul>
+            </div>
+        }
+    }
+
+    @* ── Tabla editable ─────────────────────────────────────────────────────────────────────── *@
+    <div class="card mb-3">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0 tabla-revision" id="tabla-revision">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th><th scope="col">Código</th><th scope="col">Asignatura</th><th scope="col">Créditos</th>
+                        <th scope="col">Cuatrimestre</th><th scope="col">Prerrequisitos</th><th scope="col">Electiva</th><th scope="col">Quitar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < Model.Filas.Count; i++)
+                {
+                    var f = Model.Filas[i];
+                    var problemas = c is not null && c.ErroresPorFila.TryGetValue(f, out var lista) ? lista : null;
+                    <tr class="@(f.Quitar ? "fila-quitada" : problemas is not null ? "fila-con-problema" : "")" data-fila="@i">
+                        <td class="text-muted small">@(f.Linea > 0 ? f.Linea.ToString() : "+")<input type="hidden" name="filas[@i].Linea" value="@f.Linea" /></td>
+                        <td><input name="filas[@i].Codigo" value="@f.Codigo" class="form-control form-control-sm" aria-label="Código de la fila @(i + 1)" /></td>
+                        <td><input name="filas[@i].Nombre" value="@f.Nombre" class="form-control form-control-sm" aria-label="Asignatura de la fila @(i + 1)" /></td>
+                        <td><input name="filas[@i].Creditos" value="@f.Creditos" class="form-control form-control-sm campo-corto" inputmode="numeric" aria-label="Créditos de la fila @(i + 1)" /></td>
+                        <td><input name="filas[@i].Cuatrimestre" value="@f.Cuatrimestre" class="form-control form-control-sm campo-corto" inputmode="numeric" aria-label="Cuatrimestre de la fila @(i + 1)" /></td>
+                        <td><input name="filas[@i].Prerrequisitos" value="@f.Prerrequisitos" class="form-control form-control-sm" aria-label="Prerrequisitos de la fila @(i + 1)" placeholder="ISO100; 67% créditos aprobados" /></td>
+                        <td class="text-center"><input type="checkbox" class="form-check-input" name="filas[@i].Electiva" value="true" checked="@f.Electiva" aria-label="Electiva, fila @(i + 1)" /><input type="hidden" name="filas[@i].Electiva" value="false" /></td>
+                        <td class="text-center"><input type="checkbox" class="form-check-input" name="filas[@i].Quitar" value="true" checked="@f.Quitar" aria-label="Quitar la fila @(i + 1)" /><input type="hidden" name="filas[@i].Quitar" value="false" /></td>
+                    </tr>
+                    @if (problemas is not null)
+                    {
+                        <tr class="fila-problema" data-problema-de="@i">
+                            <td></td>
+                            <td colspan="7"><ul class="mb-0 small">@foreach (var p in problemas) { <li>@p</li> }</ul></td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @* ── Guardar ────────────────────────────────────────────────────────────────────────────── *@
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="usar" name="usar" value="true" checked="@Model.Usar" />
+                <label class="form-check-label" for="usar">Usarlo como mi pénsum al guardarlo</label>
+            </div>
+            <input type="hidden" name="usar" value="false" />
+            @if (Model.Existe)
+            {
+                <div class="form-check mt-2" id="ya-existe">
+                    <input class="form-check-input" type="checkbox" id="reemplazar" name="reemplazar" value="true" checked="@Model.Reemplazar" />
+                    <label class="form-check-label" for="reemplazar">Ya tienes un pénsum personal con este nombre y versión. Reemplazarlo</label>
+                </div>
+                <input type="hidden" name="reemplazar" value="false" />
+            }
+            <p class="form-text mb-0 mt-2">
+                Se guarda como un archivo en <code>pensums/</code> que no se sube a Git. Si quieres compartirlo con otras personas de tu carrera, lee
+                <a asp-action="Guia">la guía para agregar una carrera</a>.
+            </p>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" name="accion" value="revisar" class="btn btn-outline-secondary">Revisar</button>
+        <button type="submit" name="accion" value="agregar" class="btn btn-outline-secondary">Agregar 3 filas</button>
+        <button type="submit" name="accion" value="guardar" class="btn btn-primary" disabled="@(!Model.PuedeGuardar || (Model.Existe && !Model.Reemplazar))">Guardar como pénsum personal</button>
+        <a asp-action="Importar" class="btn btn-outline-secondary ms-auto">Empezar de nuevo</a>
+    </div>
+    @if (!Model.PuedeGuardar)
+    {
+        <p class="form-text mt-2" id="guardar-bloqueado">El botón de guardar se activa cuando el pénsum es válido: corrige los problemas y pulsa «Revisar».</p>
+    }
+    else if (Model.Existe && !Model.Reemplazar)
+    {
+        <p class="form-text mt-2" id="guardar-bloqueado">Marca «Reemplazarlo» y pulsa «Revisar» para poder guardar, o cambia la versión.</p>
+    }
+</form>

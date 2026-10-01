@@ -1,0 +1,30 @@
+@model HistorialAcademico.Web.ViewComponents.BarraSincronizacionModelo
+@{
+    var ok = Model.UltimaExitosa;
+    var ultimo = Model.UltimoIntento;
+    var fallo = ultimo is not null && ultimo.Resultado == ResultadoSincronizacion.Error;
+}
+<div class="barra-sync-contenido">
+    <span class="small text-muted">
+        @if (ok is null)
+        {
+            <text>Aún no se ha sincronizado con Banner.</text>
+        }
+        else
+        {
+            <text>Última sincronización: <strong>@Ui.FechaHora(ok.Fecha)</strong></text>
+        }
+    </span>
+    @if (fallo && ultimo is not null)
+    {
+        <a asp-controller="Sincronizaciones" asp-action="Index" class="small text-danger text-decoration-none"
+           title="@ultimo.Mensaje">⚠ El último intento falló (@Ui.FechaHora(ultimo.Fecha))</a>
+    }
+    <form asp-controller="Sincronizaciones" asp-action="Actualizar" method="post" data-sync class="ms-auto">
+        <input type="hidden" name="volverA" value="@(Context.Request.Path + Context.Request.QueryString)" />
+        <button type="submit" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-2">
+            @Iconos.Svg("refrescar", "icono icono-sm")
+            Actualizar desde Banner
+        </button>
+    </form>
+</div>

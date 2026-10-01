@@ -1,0 +1,82 @@
+@model EstadoAcademico
+@{
+    ViewData["Title"] = "Índice Académico";
+    var g = Model.Indice.Global;
+}
+
+<h1 class="h3 mb-3">Índice Académico</h1>
+
+@if (!Model.HayHistorico)
+{
+    <div class="alert alert-info">Aún no hay histórico. Pulsa <strong>Actualizar desde Banner</strong> para traerlo, o <a asp-controller="MateriasManuales" asp-action="Index">registra tus materias a mano</a>.</div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th class="text-end">Horas Aprobadas</th>
+                        <th class="text-end">Horas PGA</th>
+                        <th class="text-end">Puntos de Calidad</th>
+                        <th class="text-end">PGA del período</th>
+                        <th class="text-end">PGA acumulado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in Model.Indice.Periodos)
+                {
+                    <tr>
+                        <td>@p.Periodo</td>
+                        <td class="text-end">@Ui.Num(p.DelPeriodo.HorasAprobadas)</td>
+                        <td class="text-end">@Ui.Num(p.DelPeriodo.HorasPga)</td>
+                        <td class="text-end">@Ui.Num(p.DelPeriodo.PuntosCalidad)</td>
+                        <td class="text-end">@Ui.Indice(p.DelPeriodo.Indice)</td>
+                        <td class="text-end">@Ui.Indice(p.Acumulado.Indice)</td>
+                    </tr>
+                }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold">
+                        <td>Totales</td>
+                        <td class="text-end">@Ui.Num(g.HorasAprobadas)</td>
+                        <td class="text-end">@Ui.Num(g.HorasPga)</td>
+                        <td class="text-end">@Ui.Num(g.PuntosCalidad)</td>
+                        <td class="text-end"></td>
+                        <td class="text-end">@Ui.Indice(g.Indice)</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3 text-center">
+        <div class="card-body">
+            <div class="text-muted">Índice global</div>
+            <div class="indice-global text-primary">@Ui.Indice(g.Indice)</div>
+        </div>
+    </div>
+
+    @if (Model.Advertencias.Count == 0)
+    {
+        <div class="alert alert-success">Este cálculo coincide con los totales que publica Banner.</div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <strong>Atención: el cálculo no coincide con Banner.</strong>
+            <ul class="mb-0 mt-2">
+                @foreach (var a in Model.Advertencias) { <li>@a</li> }
+            </ul>
+        </div>
+    }
+
+    <div class="alert alert-secondary small mb-0">
+        <strong>Cómo se calcula.</strong> Escala sin + ni −: A = 4, B = 3, C = 2, D = 1, F = 0.
+        Índice = Σ(puntos × créditos) ÷ Σ(créditos que cuentan para el índice).
+        Las materias <strong>exentas (E)</strong> cuentan como aprobadas pero <strong>no</strong> entran en el índice
+        (0 horas PGA, 0 puntos), y las materias de 0 créditos (como Inglés I-VIII) no lo afectan.
+    </div>
+}

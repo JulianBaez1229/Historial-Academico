@@ -1,0 +1,97 @@
+@model AsistenteCarreraViewModel
+@{
+    ViewData["Title"] = "Tu carrera";
+    Layout = "_LayoutSimple";
+    var v = Model.Vista;
+}
+
+<div class="acceso-tarjeta acceso-ancho">
+    @if (Model.EnAsistente) { <partial name="_Pasos" model="new PasosViewModel(3)" /> }
+
+    <h1 class="h4">Elige tu universidad y tu carrera</h1>
+    <p class="text-muted">
+        Con tu pénsum se calcula qué materias llevas, cuáles te faltan y cuánto avanzas. Elige la versión de tu plan de estudios.
+        Si tu carrera no aparece, omite este paso y agrégala después en «Carrera y pénsum».
+    </p>
+
+    @if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+    @if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+    @if (v.Activo is not null)
+    {
+        <div class="alert alert-info" role="status" id="elegido">Ya elegiste <strong>@v.Activo.NombreCarrera</strong> (plan @v.Activo.Version). Puedes seguir con el siguiente paso o cambiarlo.</div>
+    }
+
+    <form method="get" asp-action="Carrera" class="row g-2 align-items-end mb-3" id="filtro-carrera">
+        <div class="col-md-5">
+            <label for="universidad" class="form-label">Universidad</label>
+            <select id="universidad" name="universidad" class="form-select">
+                <option value="">Todas las universidades</option>
+                @foreach (var u in v.Universidades)
+                {
+                    <option value="@u.Id" selected="@(u.Id == Model.Universidad)">@u.Nombre</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="q" class="form-label">Carrera</label>
+            <input id="q" name="q" class="form-control" value="@Model.Busqueda" placeholder="Ej. ingeniería, derecho…" autocomplete="off" />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-outline-primary flex-fill">Buscar</button>
+            @if (Model.HayFiltro) { <a asp-action="Carrera" class="btn btn-outline-secondary">Limpiar</a> }
+        </div>
+    </form>
+
+    @if (v.Pensums.Count == 0)
+    {
+        <p class="text-muted" id="sin-resultados">
+            @if (!v.CarpetaEncontrada) { <span>No encontré la carpeta <code>pensums/</code> de la aplicación.</span> }
+            else if (v.TotalEnCatalogo == 0) { <span>El catálogo todavía no tiene ningún pénsum válido.</span> }
+            else { <span>Ningún pénsum coincide con lo que buscas (@v.TotalEnCatalogo en el catálogo).</span> }
+        </p>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table align-middle" id="tabla-carreras">
+                <thead><tr><th>Universidad</th><th>Carrera</th><th>Plan</th><th class="text-end">Créditos</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var p in v.Pensums)
+                {
+                    var d = p.Definicion;
+                    <tr class="@(p.EsActivo ? "fila-activa" : "")" data-clave="@d.Clave">
+                        <td>@p.Universidad.Nombre</td>
+                        <td class="fw-semibold">@d.NombreCarrera</td>
+                        <td>@d.Version</td>
+                        <td class="text-end">@d.TotalCreditos</td>
+                        <td class="text-end">
+                            @if (p.EsActivo) { <span class="badge bg-success">Elegido</span> }
+                            else
+                            {
+                                <form asp-action="Carrera" method="post">
+                                    <input type="hidden" name="clave" value="@d.Clave" />
+                                    <button type="submit" class="btn btn-sm btn-primary" aria-label="Usar el pénsum de @d.NombreCarrera, plan @d.Version">Usar este</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        @if (Model.EnAsistente)
+        {
+            <a class="btn btn-outline-secondary" asp-action="Perfil">Atrás</a>
+            <form asp-action="OmitirCarrera" method="post" class="d-inline">
+                <button type="submit" class="btn btn-primary">@(v.Activo is null ? "Omitir por ahora" : "Continuar")</button>
+            </form>
+        }
+        else
+        {
+            <a class="btn btn-link" asp-controller="Carrera" asp-action="Index">Ver «Carrera y pénsum»</a>
+        }
+    </div>
+</div>

@@ -1,0 +1,76 @@
+codigo,nombre,creditos,cuatrimestre,prerrequisitos,es_electiva
+ESP101,Análisis de Textos Discursivos,3,1,,false
+ISO100,Fundamentos de Informática y Algoritmos,5,1,,false
+ISO105,Fundamentos de Sistemas Operativos,3,1,,false
+SOC011,Historia Social Dominicana,3,1,,false
+SOC030,Orientación Universitaria,2,1,,false
+MAT127,Matemática Superior para Ingenieros,5,1,,false
+INF250,Fundamentos de Ingeniería,2,1,,false
+ENG001,Inglés I,0,1,,false
+SOC043,Gestión Ambiental,2,2,,false
+ESP106,Redacción de Textos Discursivos I,3,2,ESP101,false
+SOC200,Introducción a la Sociología,3,2,,false
+SOC101,Introducción a la Psicología,3,2,,false
+MAT131,Cálculo y Geometría Analítica I,5,2,MAT127,false
+ISO200,Programación y Estructura de Datos,5,2,ISO100,false
+ENG002,Inglés II,0,2,ENG001,false
+ODEP,Optativa Deporte,0,2,,false
+INF111,Programación Orientada a Objetos,3,3,ISO200,false
+ISO300,Fundamentos de Ingeniería de Software,4,3,INF250,false
+ESP107,Redacción de Textos Discursivos II,3,3,ESP106,false
+MAT132,Cálculo y Geometría Analítica II,5,3,MAT131,false
+ING716,Física I,3,3,MAT131,false
+ING717,Laboratorio de Física I,1,3,MAT131,false
+ISO310,Diseño Web,4,3,ISO200,false
+ENG003,Inglés III,0,3,ENG002,false
+INF164,Base de Datos I,3,4,INF111,false
+ISO410,Verificación y Validación de Software,4,4,ISO300,false
+SOC013,Filosofía,2,4,,false
+SOC253,Metodología y Técnicas de Investigación,4,4,,false
+MAT151,Matemática Discreta,4,4,MAT132,false
+SOC031,Ética Profesional,3,4,,false
+ISO500,Ingeniería de Requisitos,3,4,ISO300,false
+ENG004,Inglés IV,0,4,ENG003,false
+INF165,Base de Datos II,3,5,INF164,false
+ISO505,Ingeniería de la Usabilidad,3,5,ISO410,false
+CON127,Contabilidad para Ingenieros,3,5,MAT127,false
+ING718,Física II,3,5,ING716,false
+ING719,Laboratorio de Física II,1,5,ING717,false
+ISO515,Programación Web,3,5,ISO310,false
+ADM535,Actitud Emprendedora,3,5,SOC101,false
+ISO400,Análisis y Diseño Orientado a Objetos,4,5,ISO500,false
+ENG005,Inglés V,0,5,ENG004,false
+ISO600,Administración de Configuración,3,6,ISO400,false
+MAT252,Probabilidad y Estadística,4,6,MAT132,false
+ISO615,Desarrollo de Software con Tecnologías Propietarias y Open Source I,4,6,INF165,false
+ISO625,Programación Móvil,4,6,ISO515,false
+ENG006,Inglés VI,0,6,ENG005,false
+ISO700,Gestión de Sitios Web,3,7,ISO505,false
+ISO705,Proyecto de Software I,4,7,ISO600,false
+ISO720,Desarrollo de Software con Tecnologías Propietarias y Open Source II,4,7,ISO615,false
+ISO735,Seguridad de Software,3,7,,false
+E077,Electiva I ISO-11,3,7,59% créditos aprobados,true
+ENG007,Inglés VII,0,7,ENG006,false
+ISO800,Gestión de Calidad de Software,3,8,ISO735,false
+ISO725,Integración de Aplicaciones con Tecnologías Propietarias y Open Source,4,8,ISO720,false
+ISO934,Proyecto de Software II,4,8,ISO705,false
+E078,Electiva II ISO-11,3,8,E077; 67% créditos aprobados,true
+ENG008,Inglés VIII,0,8,ENG007,false
+IDI045,Inglés para Informática I,3,9,ENG008,false
+ISO900,Administración de Desarrollo,4,9,ISO800,false
+INF900,Ingeniería Comercial,3,9,,false
+ISO912,Arquitectura de Desarrollo con Tecnologías Propietarias y Open Source,4,9,ISO725,false
+ISO931,Inteligencia de Negocios,3,9,ISO700,false
+E079,Electiva III ISO-11,3,9,E078; 73% créditos aprobados,true
+IDI046,Inglés para Informática II,3,10,IDI045,false
+ISO937,Computación Ubicua,4,10,ISO931,false
+ISO940,Implementación de eCommerce con Tecnologías Propietarias y Open Source,4,10,ISO912,false
+DER010,Educación Constitucional,3,10,,false
+ISO936,Proyecto de Software III,4,10,ISO934,false
+PAS261,Pasantía,0,10,,false
+SOC281,Seminario de Grado,3,11,SOC253; 90% créditos aprobados,false
+ISO945,Sistemas de Información Geográfica,3,11,ISO937,false
+DER800,Derecho Aplicado a la Informática,3,11,,false
+ISC835,Computación Forense y Ciberseguridad,3,11,,false
+INF610,Auditoría de Sistemas Informáticos,3,11,,false
+TFG,Trabajo Final de Grado,6,12,,false

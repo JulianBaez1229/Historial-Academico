@@ -1,0 +1,314 @@
+@model TentativoViewModel
+@using HistorialAcademico.Core.Horarios
+@using HistorialAcademico.Web.Services
+@{
+    ViewData["Title"] = "Mi horario tentativo";
+    ViewData["Pestana"] = "tentativo";
+    var v = Model.Vista;
+    string Abrev(DiasSemana d) => d switch
+    {
+        DiasSemana.Lunes => "Lun", DiasSemana.Martes => "Mar", DiasSemana.Miercoles => "Mié", DiasSemana.Jueves => "Jue",
+        DiasSemana.Viernes => "Vie", DiasSemana.Sabado => "Sáb", _ => "Dom",
+    };
+}
+
+<h1 class="h3 mb-2">Horarios de Banner</h1>
+<partial name="_Pestanas" />
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+<p class="text-muted">
+    Arma un horario semanal con las secciones que ya consultaste en Banner. Las que chocan entre sí se marcan en rojo y las que
+    chocan con tus <a asp-action="NoDisponible">horas no disponibles</a> aparecen atenuadas al final de la lista.
+</p>
+
+@* ── Elegir, crear y gestionar horarios ─────────────────────────────────────────────────────── *@
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            @if (Model.Horarios.Count > 0)
+            {
+                <form method="get" asp-action="Tentativo" class="d-flex align-items-center gap-2">
+                    <label for="horarioId" class="fw-semibold mb-0">Horario:</label>
+                    <select id="horarioId" name="id" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                        @foreach (var h in Model.Horarios)
+                        {
+                            <option value="@h.Id" selected="@(h.Id == v?.Horario.Id)">@h.Nombre · @HorariosService.NombreDePeriodo(h.Periodo)</option>
+                        }
+                    </select>
+                </form>
+            }
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#nuevoHorario">Nuevo horario</button>
+            @if (v is not null)
+            {
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#gestionHorario">Gestionar este horario</button>
+            }
+        </div>
+
+        <div class="collapse mt-3 @(v is null ? "show" : "")" id="nuevoHorario">
+            <form asp-action="CrearTentativo" method="post" class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label for="nombreNuevo" class="form-label">Nombre</label>
+                    <input id="nombreNuevo" name="nombre" class="form-control" maxlength="@HorarioTentativoService.MaxNombre" placeholder="Ej. Trabajo en las tardes" />
+                </div>
+                <div class="col-md-4">
+                    <label for="periodoNuevo" class="form-label">Período</label>
+                    <select id="periodoNuevo" name="periodo" class="form-select">
+                        @foreach (var p in Model.Periodos)
+                        {
+                            <option value="@p.Codigo" selected="@(p.Codigo == Model.PeriodoNuevo)">@p.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-grid"><button type="submit" class="btn btn-primary">Crear horario</button></div>
+            </form>
+        </div>
+
+        @if (v is not null)
+        {
+            <div class="collapse mt-3" id="gestionHorario">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <form asp-action="RenombrarTentativo" method="post">
+                            <input type="hidden" name="id" value="@v.Horario.Id" />
+                            <label for="nombreHorario" class="form-label">Nombre</label>
+                            <div class="input-group">
+                                <input id="nombreHorario" name="nombre" class="form-control" maxlength="@HorarioTentativoService.MaxNombre" value="@v.Horario.Nombre" />
+                                <button type="submit" class="btn btn-outline-secondary">Renombrar</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-5">
+                        <form asp-action="AsociarPlan" method="post">
+                            <input type="hidden" name="id" value="@v.Horario.Id" />
+                            <label for="planAsociado" class="form-label">Escenario del planificador</label>
+                            <div class="input-group">
+                                <select id="planAsociado" name="planId" class="form-select">
+                                    <option value="">— Ninguno —</option>
+                                    @foreach (var p in Model.Planes)
+                                    {
+                                        <option value="@p.Id" selected="@(p.Id == v.Horario.PlanEstudioId)">@p.Nombre</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-outline-secondary">Asociar</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <form asp-action="EliminarTentativo" method="post" class="w-100" onsubmit="return confirm('¿Eliminar este horario? No se puede deshacer.');">
+                            <input type="hidden" name="id" value="@v.Horario.Id" />
+                            <button type="submit" class="btn btn-outline-danger w-100">Eliminar horario</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (v is null)
+{
+    <div class="card"><div class="card-body text-muted">Aún no tienes ningún horario. Crea uno para empezar a elegir secciones.</div></div>
+    return;
+}
+
+<div class="d-flex flex-wrap align-items-baseline gap-2 mb-2">
+    <h2 class="h5 mb-0">@v.Horario.Nombre</h2>
+    <span class="text-muted">@v.PeriodoNombre · @v.Elegidas.Count @(v.Elegidas.Count == 1 ? "materia" : "materias") · @Ui.Num(v.Creditos) créditos</span>
+    @if (v.PlanNombre is not null)
+    {
+        <span class="badge bg-secondary" id="plan-asociado">Escenario: @v.PlanNombre</span>
+    }
+</div>
+
+@if (v.HayChoques)
+{
+    <div class="alert alert-danger" id="choques" role="alert">
+        <strong>@(v.Grilla.Choques.Count == 1 ? "Hay un choque de horario" : $"Hay {v.Grilla.Choques.Count} choques de horario")</strong>
+        <ul class="mb-0">
+            @foreach (var c in v.Grilla.Choques) { <li>@Ui.MotivoChoque(c)</li> }
+        </ul>
+    </div>
+}
+else if (v.Elegidas.Count > 1)
+{
+    <div class="alert alert-success" role="status" id="sin-choques">Sin choques de horario.</div>
+}
+
+@if (v.Perdidas.Count > 0)
+{
+    <div class="alert alert-info" id="perdidas">
+        @foreach (var p in v.Perdidas)
+        {
+            <div>@p.Etiqueta ya no aparece entre las secciones consultadas de @v.PeriodoNombre (quizá cambió en Banner). Vuelve a consultar la materia o quítala del horario.
+                <form asp-action="QuitarSeccion" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@v.Horario.Id" /><input type="hidden" name="nrc" value="@p.Nrc" />
+                    <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">Quitar</button>
+                </form>
+            </div>
+        }
+    </div>
+}
+
+@* ── Grilla semanal ──────────────────────────────────────────────────────────────────────────── *@
+@{
+    var g = v.Grilla;
+    var filas = g.HoraFin - g.HoraInicio;
+}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="horario" id="grilla-horario" style="--filas: @filas;" role="group" aria-label="Horario semanal de @v.Horario.Nombre">
+            <div class="horario-horas" aria-hidden="true">
+                <div class="horario-dia-titulo">&nbsp;</div>
+                <div class="horario-cuerpo">
+                    @for (var h = g.HoraInicio; h < g.HoraFin; h++)
+                    {
+                        <div class="horario-hora">@Ui.HoraMin(h * 60)</div>
+                    }
+                </div>
+            </div>
+            @foreach (var dia in g.Dias)
+            {
+                <div class="horario-dia">
+                    <div class="horario-dia-titulo">@Abrev(dia)</div>
+                    <div class="horario-cuerpo">
+                        @foreach (var c in g.Celdas.Where(c => c.Dia == dia))
+                        {
+                            var arriba = 100.0 * (c.InicioMin - g.HoraInicio * 60) / g.MinutosTotales;
+                            var alto = 100.0 * (c.FinMin - c.InicioMin) / g.MinutosTotales;
+                            var izquierda = 100.0 * c.Carril / c.Carriles;
+                            var ancho = 100.0 / c.Carriles;
+                            var clase = c.Tipo == TipoCelda.NoDisponible ? "horario-nodisp" : c.ConChoque ? "horario-clase horario-choque" : "horario-clase";
+                            <div class="horario-celda @clase" data-nrc="@c.Nrc"
+                                 style="top: @(Ui.Css(arriba))%; height: @(Ui.Css(alto))%; left: @(Ui.Css(izquierda))%; width: @(Ui.Css(ancho))%;"
+                                 title="@c.Etiqueta @c.Detalle · @Ui.HoraMin(c.InicioMin) a @Ui.HoraMin(c.FinMin)">
+                                <span class="horario-celda-titulo">@c.Etiqueta</span>
+                                @if (c.Tipo == TipoCelda.Clase)
+                                {
+                                    <span class="horario-celda-hora">@Ui.HoraMin(c.InicioMin) – @Ui.HoraMin(c.FinMin)</span>
+                                    @if (c.ConChoque) { <span class="horario-celda-choque">Choque</span> }
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <p class="small text-muted mt-2 mb-0">
+            <span class="horario-leyenda horario-leyenda-clase"></span> clase &nbsp;
+            <span class="horario-leyenda horario-leyenda-choque"></span> choque &nbsp;
+            <span class="horario-leyenda horario-leyenda-nodisp"></span> hora no disponible
+        </p>
+        @if (g.SinHorarioFijo.Count > 0)
+        {
+            <p class="small text-muted mt-2 mb-0" id="sin-dia-fijo">
+                Sin día fijo (no ocupan la grilla):
+                @string.Join("; ", g.SinHorarioFijo.Select(x => $"{x.Seccion.Codigo}-{x.Seccion.Seccion}" + (x.Bloque.Inicio is null ? "" : $" ({Ui.Horas(x.Bloque)})")))
+            </p>
+        }
+    </div>
+</div>
+
+@* ── Secciones elegidas ──────────────────────────────────────────────────────────────────────── *@
+<h2 class="h5">Secciones elegidas</h2>
+@if (v.Elegidas.Count == 0)
+{
+    <p class="text-muted" id="sin-elegidas">Todavía no elegiste ninguna sección. Agrégalas desde la lista de abajo.</p>
+}
+else
+{
+    <div class="card mb-3" id="elegidas">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Materia</th><th>Sec.</th><th>Profesor</th><th>Horario</th><th class="text-end">Créd.</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var s in v.Elegidas)
+                {
+                    <tr>
+                        <td><span class="fw-semibold">@s.Codigo</span> <span class="text-muted">@Ui.TituloBonito(s.Titulo)</span></td>
+                        <td>@s.Seccion</td>
+                        <td>@(s.Profesores.Count == 0 ? "Sin asignar" : string.Join("; ", s.Profesores))</td>
+                        <td>@foreach (var b in s.Bloques) { <div class="small">@Ui.Bloque(b)</div> }</td>
+                        <td class="text-end">@Ui.Num(s.Creditos)</td>
+                        <td class="text-end">
+                            <form asp-action="QuitarSeccion" method="post">
+                                <input type="hidden" name="id" value="@v.Horario.Id" /><input type="hidden" name="nrc" value="@s.Nrc" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Quitar @s.Codigo-@s.Seccion del horario">Quitar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@* ── Secciones que se pueden agregar ─────────────────────────────────────────────────────────── *@
+<h2 class="h5">Agregar secciones</h2>
+@if (v.Opciones.Count == 0)
+{
+    <div class="card" id="sin-opciones">
+        <div class="card-body text-muted">
+            No hay secciones consultadas de @v.PeriodoNombre. Consulta las materias en
+            <a asp-action="Index" asp-route-periodo="@v.Horario.Periodo">Secciones de Banner</a> y vuelve.
+        </div>
+    </div>
+    return;
+}
+<p class="small text-muted">
+    @if (v.NoDisponibles.Count > 0) { <span>Las secciones que chocan con tus horas no disponibles están atenuadas y al final de cada materia. </span> }
+    Elegir otra sección de una materia reemplaza la anterior.
+</p>
+
+<div id="opciones">
+@foreach (var grupo in v.Opciones)
+{
+    <details class="card mb-2" open="@grupo.TieneElegida">
+        <summary class="card-body py-2">
+            <span class="fw-semibold">@grupo.Codigo</span> <span class="text-muted">@grupo.Nombre</span>
+            <span class="small text-muted">· @grupo.Secciones.Count @(grupo.Secciones.Count == 1 ? "sección" : "secciones")</span>
+            @if (grupo.TieneElegida) { <span class="badge bg-success ms-1">Elegida</span> }
+        </summary>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Sec.</th><th>Profesor</th><th>Horario</th><th>Cupos</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var o in grupo.Secciones)
+                {
+                    var s = o.Seccion;
+                    <tr class="@(o.ChocaConNoDisponible ? "seccion-atenuada" : "")" data-nrc="@s.Nrc">
+                        <td>@s.Seccion<div class="small text-muted">NRC @s.Nrc</div></td>
+                        <td>@(s.Profesores.Count == 0 ? "Sin asignar" : string.Join("; ", s.Profesores))</td>
+                        <td>
+                            @if (s.Bloques.Count == 0) { <span class="text-muted">Sin horario publicado</span> }
+                            @foreach (var b in s.Bloques) { <div class="small">@Ui.Bloque(b)</div> }
+                            @if (o.ChocaConNoDisponible) { <div class="small fw-semibold">Choca con tus horas no disponibles</div> }
+                            @if (o.ChocaCon.Count > 0 && !o.Elegida) { <div class="small fw-semibold">Choca con @string.Join(", ", o.ChocaCon)</div> }
+                        </td>
+                        <td>
+                            @if (s.SinCupoAsignado) { <span class="badge bg-secondary">Sin cupo asignado</span> }
+                            else { <span class="badge @(s.Llena ? "bg-danger" : "bg-success")">@(s.Llena ? "Llena" : s.CuposDisponibles + " libres")</span> }
+                        </td>
+                        <td class="text-end">
+                            @if (o.Elegida)
+                            {
+                                <span class="badge bg-success">En el horario</span>
+                            }
+                            else
+                            {
+                                <form asp-action="AgregarSeccion" method="post">
+                                    <input type="hidden" name="id" value="@v.Horario.Id" /><input type="hidden" name="nrc" value="@s.Nrc" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" aria-label="Agregar @s.Codigo-@s.Seccion al horario">@(grupo.TieneElegida ? "Cambiar a esta" : "Agregar")</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </details>
+}
+</div>

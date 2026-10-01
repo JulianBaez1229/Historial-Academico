@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://historial-academico.local/pensums/schema.json",
+  "title": "Pénsum (formato 1)",
+  "description": "Un plan de estudios de una carrera. Se guarda en pensums/<universidad>/<carrera>-<version>.json. Además de este esquema, la aplicación comprueba que los códigos no se repitan, que los prerrequisitos existan y no formen ciclos, que totalCreditos sea la suma de los créditos de las materias y que la carpeta y el nombre del archivo correspondan a universidad, carrera y version.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formato", "universidad", "carrera", "nombreCarrera", "version", "totalCreditos", "cuatrimestres", "materias"],
+  "properties": {
+    "formato": { "description": "Versión de este formato.", "const": 1 },
+    "universidad": { "description": "Identificador de la universidad (igual a la carpeta que contiene el archivo).", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "carrera": { "description": "Identificador de la carrera.", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "nombreCarrera": { "description": "Nombre para mostrar.", "type": "string", "minLength": 1 },
+    "version": { "description": "Versión o año del plan (11, 2019, 2019-b…).", "type": "string", "pattern": "^[A-Za-z0-9]+([._-][A-Za-z0-9]+)*$" },
+    "totalCreditos": { "description": "Suma de los créditos de todas las materias.", "type": "integer", "minimum": 0, "maximum": 1000 },
+    "cuatrimestres": { "description": "Cantidad de períodos del plan.", "type": "integer", "minimum": 1, "maximum": 24 },
+    "materias": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/materia" }
+    },
+    "bloquesElectivas": {
+      "description": "Las electivas del pénsum y las materias entre las que se elige.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/bloqueElectivas" }
+    },
+    "certificaciones": {
+      "description": "Alternativas de certificación (grupos de materias que sustituyen a las electivas generales).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/certificacion" }
+    },
+    "requisitosGraduacion": {
+      "description": "Requisitos de graduación adicionales al pénsum (deporte, inglés, pasantía…), como texto.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "equivalencias": {
+      "description": "Materias de un plan anterior (u otra carrera), tal como aparecen en el histórico de Banner, que cubren materias de este pénsum. Un origen no puede repetirse.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/equivalencia" }
+    }
+  },
+  "$defs": {
+    "codigo": { "type": "string", "pattern": "^[A-Z0-9]{2,12}$" },
+    "materia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo", "nombre", "creditos", "cuatrimestre"],
+      "properties": {
+        "codigo": { "$ref": "#/$defs/codigo" },
+        "nombre": { "type": "string", "minLength": 1 },
+        "creditos": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "cuatrimestre": { "description": "Período del plan en que se ubica (1 a cuatrimestres).", "type": "integer", "minimum": 1, "maximum": 24 },
+        "prerrequisitos": {
+          "description": "Cada elemento es un código de materia (ISO100) o una regla de porcentaje: «67% créditos aprobados».",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "electiva": { "description": "true si es un espacio de electiva (debe tener su bloque en bloquesElectivas).", "type": "boolean" }
+      }
+    },
+    "bloqueElectivas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo", "nombre", "opciones"],
+      "properties": {
+        "codigo": { "$ref": "#/$defs/codigo" },
+        "nombre": { "type": "string", "minLength": 1 },
+        "opciones": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["codigo", "nombre"],
+            "properties": {
+              "codigo": { "$ref": "#/$defs/codigo" },
+              "nombre": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "equivalencia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origen", "destino"],
+      "properties": {
+        "origen": { "description": "Código de la materia del plan anterior (ING701).", "$ref": "#/$defs/codigo" },
+        "destino": { "description": "Materias de este pénsum que cubre (deben existir). Vacío = se sabe que no tiene equivalente.", "type": "array", "items": { "$ref": "#/$defs/codigo" }, "uniqueItems": true },
+        "nota": { "type": "string" }
+      }
+    },
+    "certificacion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nombre", "materias"],
+      "properties": {
+        "nombre": { "type": "string", "minLength": 1 },
+        "materias": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/codigo" } },
+        "reemplazaElectivas": { "type": "boolean" },
+        "nota": { "type": "string" }
+      }
+    }
+  }
+}

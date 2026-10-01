@@ -1,0 +1,75 @@
+@model EstadoAcademico
+@{
+    ViewData["Title"] = "Materias Faltantes";
+    var p = Model.Pensum;
+    var pctAprobado = p.CreditosTotales == 0 ? 0 : 100m * p.CreditosAprobados / p.CreditosTotales;
+    var pctCurso = p.CreditosTotales == 0 ? 0 : 100m * p.CreditosEnCurso / p.CreditosTotales;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+
+<h1 class="h3 mb-3">Materias Faltantes</h1>
+
+@if (!Model.HayPensum)
+{
+    <div class="alert alert-info">Falta cargar el pénsum. <a asp-controller="Pensum" asp-action="Index">Sube <code>pensum_iso_unapec.csv</code></a>.</div>
+}
+else
+{
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3">@p.CreditosAprobados</div><div class="text-muted small">Créditos aprobados</div></div></div></div>
+        <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3">@p.CreditosEnCurso</div><div class="text-muted small">Créditos en curso</div></div></div></div>
+        <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3">@p.CreditosFaltantes</div><div class="text-muted small">Créditos faltantes</div></div></div></div>
+        <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3">@p.CreditosTotales</div><div class="text-muted small">Créditos del pénsum</div></div></div></div>
+    </div>
+
+    <div class="mb-1 d-flex justify-content-between small">
+        <span>Avance de la carrera</span>
+        <span>@Ui.Pct(p.PorcentajeAprobado) aprobado · @Ui.Pct(pctCurso) en curso</span>
+    </div>
+    <div class="progress mb-3" role="progressbar" aria-label="Avance de la carrera" style="height: 1.25rem">
+        <div class="progress-bar bg-success" style="width: @pctAprobado.ToString("0.##", inv)%">@Ui.Pct(pctAprobado)</div>
+        <div class="progress-bar bg-primary" style="width: @pctCurso.ToString("0.##", inv)%"></div>
+    </div>
+
+    <div class="alert alert-secondary small">@ElectivasReferencia.RequisitosDeGraduacion</div>
+
+    @if (!Model.HayHistorico)
+    {
+        <div class="alert alert-info">Aún no hay histórico sincronizado: por ahora todas las materias figuran como pendientes. <a asp-controller="MateriasManuales" asp-action="Index">Registra las que ya tomaste</a> o sincroniza con Banner.</div>
+    }
+
+    @foreach (var grupo in Model.Faltantes.GroupBy(f => f.Materia.Cuatrimestre).OrderBy(g => g.Key))
+    {
+        <div class="card mb-3">
+            <div class="card-header"><strong>Cuatrimestre @grupo.Key</strong></div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0 tabla-fija">
+                    <thead>
+                        <tr><th style="width:90px">Código</th><th>Asignatura</th><th class="text-end" style="width:80px">Créditos</th><th style="width:22%">Prerrequisito</th><th style="width:22%">Estado</th><th style="width:130px"></th></tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var f in grupo)
+                    {
+                        <tr>
+                            <td>@f.Materia.Codigo</td>
+                            <td>@f.Materia.Nombre @if (f.Materia.EsElectiva) { <span class="badge bg-light text-dark border">Electiva</span> }</td>
+                            <td class="text-end">@f.Materia.Creditos</td>
+                            <td>@Ui.PrerrequisitoTexto(f.Materia.Prerrequisitos)</td>
+                            <td>
+                                <span class="badge @Ui.Badge(f.Estado)">@Ui.Texto(f.Estado)</span>
+                                @foreach (var b in f.Bloqueos) { <div class="small text-muted">@b</div> }
+                            </td>
+                            <td class="text-end"><a asp-action="DetalleMateriaFaltante" asp-route-codigo="@f.Materia.Codigo" class="btn btn-sm btn-outline-primary">Ver detalle</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (Model.HayHistorico && !Model.Faltantes.Any())
+    {
+        <div class="alert alert-success">No te falta ninguna materia del pénsum. 🎓</div>
+    }
+}

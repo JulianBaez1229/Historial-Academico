@@ -1,0 +1,74 @@
+@model EstadoAcademico
+@{
+    ViewData["Title"] = "Materias Tomadas";
+    var enProgreso = Model.CursosEnProgreso.GroupBy(c => c.Periodo).ToList();
+}
+
+<h1 class="h3 mb-3">Materias Tomadas</h1>
+
+@if (!Model.HayHistorico)
+{
+    <div class="alert alert-info">Aún no hay histórico. Pulsa <strong>Actualizar desde Banner</strong> para traerlo, o <a asp-controller="MateriasManuales" asp-action="Index">registra tus materias a mano</a>.</div>
+}
+
+@foreach (var periodo in Model.Periodos)
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between">
+            <strong>@periodo.Nombre</strong>
+            <span class="text-muted small">PGA del período: @Ui.Indice(periodo.Pga) · Acumulado: @Ui.Indice(periodo.AcumPga)</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0 tabla-fija">
+                <thead>
+                    <tr><th style="width:90px">Código</th><th>Asignatura</th><th class="text-end" style="width:80px">Créditos</th><th style="width:100px">Calificación</th><th class="text-end" style="width:80px">Puntos</th><th style="width:130px"></th></tr>
+                </thead>
+                <tbody>
+                @foreach (var m in periodo.Materias)
+                {
+                    var enPensum = Model.BuscarPensum(m.Codigo) is not null;
+                    var equivalentes = Model.EquivalentesDe(m.Codigo);
+                    <tr>
+                        <td>@m.Codigo</td>
+                        <td>
+                            @Ui.Nombre(Model, m.Codigo, m.Titulo)
+                            @if (!enPensum) { <span class="badge bg-warning text-dark ms-1">Plan anterior</span> }
+                            @if (m.Calificacion == "E") { <span class="badge bg-info ms-1">Exenta</span> }
+                            @if (!enPensum && equivalentes.Count > 0) { <div class="small text-muted">Equivale a @string.Join(" + ", equivalentes)</div> }
+                            @if (!enPensum && Model.SinEquivalente(m.Codigo)) { <div class="small text-muted">Sin equivalente en el pénsum actual</div> }
+                        </td>
+                        <td class="text-end">@Ui.Num(m.HorasCredito)</td>
+                        <td>@m.Calificacion</td>
+                        <td class="text-end">@Ui.Num(m.PuntosCalidad)</td>
+                        <td class="text-end"><a asp-action="DetalleMateriaTomada" asp-route-codigo="@m.Codigo" class="btn btn-sm btn-outline-primary">Ver detalle</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@foreach (var grupo in enProgreso)
+{
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-primary text-white"><strong>Cursos en progreso (@grupo.Key)</strong>
+            <span class="small ms-2">no cuentan como aprobados ni para el índice</span></div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th style="width:90px">Código</th><th>Asignatura</th><th class="text-end" style="width:80px">Créditos</th></tr></thead>
+                <tbody>
+                @foreach (var c in grupo.OrderBy(c => c.Codigo))
+                {
+                    <tr>
+                        <td>@c.Codigo</td>
+                        <td>@Ui.Nombre(Model, c.Codigo, c.Titulo)</td>
+                        <td class="text-end">@Ui.Num(c.HorasCredito)</td>
+                    </tr>
+                }
+                </tbody>
+                <tfoot><tr><th colspan="2" class="text-end">Total</th><th class="text-end">@Ui.Num(grupo.Sum(c => c.HorasCredito))</th></tr></tfoot>
+            </table>
+        </div>
+    </div>
+}

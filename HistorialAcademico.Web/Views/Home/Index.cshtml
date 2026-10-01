@@ -1,0 +1,189 @@
+@model HistorialAcademico.Web.Controllers.InicioViewModel
+@{
+    ViewData["Title"] = "Inicio";
+    var e = Model.Estado;
+    var p = e.Pensum;
+    var est = Model.Estimacion;
+    var nombre = Ui.TituloBonito(e.Alumno?.Nombre);
+    var g = e.Indice.Global;
+    var pctAprobado = p.CreditosTotales == 0 ? 0m : 100m * p.CreditosAprobados / p.CreditosTotales;
+    var pctCurso = p.CreditosTotales == 0 ? 0m : 100m * p.CreditosEnCurso / p.CreditosTotales;
+    var pctFalta = p.CreditosTotales == 0 ? 0m : 100m * p.CreditosFaltantes / p.CreditosTotales;
+    var periodoEnCurso = e.CursosEnProgreso.Select(c => c.Periodo).Distinct().FirstOrDefault();
+
+    (string Titulo, string Texto, string Controlador, string Accion)[] atajos =
+    {
+        ("Datos Personales", "Nombre, programa, escuela, campus y estado académico.", "Estudiante", "DatosPersonales"),
+        ("Materias Tomadas", "Todo lo cursado, agrupado por período, y los cursos en progreso.", "Estudiante", "MateriasTomadas"),
+        ("Materias Faltantes", "Lo que falta del pénsum por cuatrimestre y tu avance de la carrera.", "Estudiante", "MateriasFaltantes"),
+        ("Índice Académico", "PGA por período, acumulado e índice global.", "Estudiante", "IndiceAcademico"),
+        ("Mapa del pénsum", "Los 12 cuatrimestres con cada materia coloreada por su estado.", "Pensum", "Mapa"),
+        ("Qué puedo inscribir", "Las materias disponibles ahora, ordenadas por cuatrimestre.", "Pensum", "QueInscribir"),
+        ("Planificador", "Planifica los cuatrimestres que te faltan, qué priorizar y cuándo te gradúas.", "Planificador", "Index"),
+    };
+}
+
+@if (TempData["Mensaje"] is string aviso) { <div class="alert alert-success" role="status" id="aviso-inicio">@aviso</div> }
+@if (TempData["Error"] is string fallo) { <div class="alert alert-danger" role="alert">@fallo</div> }
+
+<h1 class="h3 mb-1">Historial Académico@(nombre.Length > 0 ? " – " + nombre : "")</h1>
+@* Solo el programa del estudiante: la aplicación es independiente y no lleva el nombre de ninguna universidad en su portada. *@
+@if (Ui.TituloBonito(e.Alumno?.Programa) is { Length: > 0 } programa)
+{
+    <p class="text-muted" id="programa-inicio">@programa</p>
+}
+
+@if (!e.HayHistorico)
+{
+    <div class="alert alert-info">
+        Todavía no hay datos. Pulsa <strong>Actualizar desde Banner</strong> (arriba a la derecha) para traer tu histórico académico.
+        ¿No usas Banner? <a asp-controller="MateriasManuales" asp-action="Index">Registra tus materias a mano</a> o impórtalas de un CSV.
+    </div>
+}
+else if (!e.HayPensum)
+{
+    <div class="alert alert-info">
+        Falta cargar el pénsum para ver tu avance, las materias faltantes y el mapa.
+        <a asp-controller="Pensum" asp-action="Index">Sube <code>pensum_iso_unapec.csv</code></a>.
+    </div>
+}
+
+@if (e.HayHistorico)
+{
+    @* ── Tarjetas ──────────────────────────────────────────────────────────── *@
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-3">
+            <div class="card tarjeta-dato tarjeta-elevable h-100"><div class="card-body">
+                <div class="tarjeta-dato-cab">@Iconos.Svg("grafico", "icono icono-dato") <span>Índice acumulado</span></div>
+                <div class="tarjeta-dato-valor">@Ui.Contador(g.Indice, 2)</div>
+                <div class="text-muted small">@Ui.Num(g.HorasPga) horas PGA · @Ui.Num(g.PuntosCalidad) puntos de calidad</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card tarjeta-dato tarjeta-elevable h-100"><div class="card-body">
+                @if (e.HayPensum)
+                {
+                    <div class="tarjeta-dato-cab">@Iconos.Svg("check", "icono icono-dato") <span>Créditos aprobados</span></div>
+                    <div class="tarjeta-dato-valor">@Ui.Contador(p.CreditosAprobados) <span class="tarjeta-dato-total">/ @p.CreditosTotales</span></div>
+                    <div class="text-muted small">@Ui.Pct(pctAprobado) de la carrera</div>
+                }
+                else
+                {
+                    <div class="tarjeta-dato-cab">@Iconos.Svg("check", "icono icono-dato") <span>Horas aprobadas</span></div>
+                    <div class="tarjeta-dato-valor">@Ui.Contador(g.HorasAprobadas)</div>
+                    <div class="text-muted small">según Banner (sin pénsum cargado)</div>
+                }
+            </div></div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card tarjeta-dato tarjeta-elevable h-100"><div class="card-body">
+                <div class="tarjeta-dato-cab">@Iconos.Svg("birrete", "icono icono-dato") <span>Cuatrimestres restantes</span></div>
+                @if (est is null)
+                {
+                    <div class="tarjeta-dato-valor">—</div>
+                    <div class="text-muted small">Carga el pénsum para estimarlo</div>
+                }
+                else if (est.Cuatrimestres == 0 && est.Graduacion is null)
+                {
+                    <div class="tarjeta-dato-valor">@Ui.Contador(0)</div>
+                    <div class="text-muted small">Ya cubriste todo el pénsum</div>
+                }
+                else
+                {
+                    <div class="tarjeta-dato-valor">@Ui.Contador(est.Cuatrimestres)</div>
+                    <div class="text-muted small">
+                        Graduación estimada@(est.PlanActivo is null ? "" : $" (plan activo «{est.PlanActivo}»)"): <a asp-controller="Planificador" asp-action="Index">@est.Graduacion?.Nombre</a>
+                    </div>
+                }
+            </div></div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card tarjeta-dato tarjeta-elevable h-100"><div class="card-body">
+                <div class="tarjeta-dato-cab">@Iconos.Svg("reloj", "icono icono-dato") <span>Materias en curso</span></div>
+                <div class="tarjeta-dato-valor">@Ui.Contador(e.CursosEnProgreso.Count)</div>
+                <div class="text-muted small">
+                    @Ui.Num(e.CursosEnProgreso.Sum(c => c.HorasCredito)) créditos@(periodoEnCurso is null ? "" : " · " + periodoEnCurso)
+                </div>
+            </div></div>
+        </div>
+    </div>
+
+    @* ── Gráficos ──────────────────────────────────────────────────────────── *@
+    <div class="row g-3 mb-4">
+        @if (e.HayPensum)
+        {
+            var descDona = FormattableString.Invariant(
+                $"Progreso de la carrera: {pctAprobado:0.0}% aprobado ({p.CreditosAprobados} de {p.CreditosTotales} créditos), {pctCurso:0.0}% en curso ({p.CreditosEnCurso} créditos) y {pctFalta:0.0}% faltante ({p.CreditosFaltantes} créditos).");
+            var pctDato = pctAprobado.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            <div class="col-lg-5">
+                <div class="card h-100"><div class="card-body">
+                    <h2 class="h6">Progreso de la carrera</h2>
+                    <div class="dona-caja">
+                        @Graficos.Dona(new[]
+                        {
+                            new SegmentoDona("dona-aprobada", p.CreditosAprobados, $"Aprobados: {p.CreditosAprobados} créditos"),
+                            new SegmentoDona("dona-encurso", p.CreditosEnCurso, $"En curso: {p.CreditosEnCurso} créditos"),
+                            new SegmentoDona("dona-faltante", p.CreditosFaltantes, $"Faltantes: {p.CreditosFaltantes} créditos"),
+                        }, p.CreditosTotales, descDona,
+                            $"<tspan class=\"contador dona-centro-valor\" data-contar=\"{pctDato}\" data-decimales=\"1\" data-sufijo=\"%\">{Ui.Pct(pctAprobado)}</tspan>")
+                        <ul class="dona-leyenda list-unstyled mb-0">
+                            <li><span class="dona-muestra dona-aprobada" aria-hidden="true"></span> Aprobados <strong>@p.CreditosAprobados</strong> cr · @Ui.Pct(pctAprobado)</li>
+                            <li><span class="dona-muestra dona-encurso" aria-hidden="true"></span> En curso <strong>@p.CreditosEnCurso</strong> cr · @Ui.Pct(pctCurso)</li>
+                            <li><span class="dona-muestra dona-faltante" aria-hidden="true"></span> Faltantes <strong>@p.CreditosFaltantes</strong> cr · @Ui.Pct(pctFalta)</li>
+                        </ul>
+                    </div>
+                </div></div>
+            </div>
+        }
+        <div class="@(e.HayPensum ? "col-lg-7" : "col-12")">
+            <div class="card h-100"><div class="card-body">
+                <h2 class="h6">PGA por período</h2>
+                @{
+                    var periodos = e.Indice.Periodos;
+                    var primero = periodos.First();
+                    var ultimo = periodos.Last();
+                    var descLineas = FormattableString.Invariant(
+                        $"PGA por período: de {primero.DelPeriodo.Indice:0.00} en {primero.Periodo} a {ultimo.DelPeriodo.Indice:0.00} en {ultimo.Periodo}. El PGA acumulado termina en {ultimo.Acumulado.Indice:0.00}.");
+                }
+                @Graficos.Lineas(
+                    periodos.Select(x => x.Periodo).ToList(),
+                    new[]
+                    {
+                        new SerieLinea("linea-periodo", "PGA del período", periodos.Select(x => (decimal?)x.DelPeriodo.Indice).ToList(), Cuadrados: false, MostrarValores: true),
+                        new SerieLinea("linea-acum", "PGA acumulado", periodos.Select(x => (decimal?)x.Acumulado.Indice).ToList(), Cuadrados: true),
+                    }, 4, descLineas)
+                <div class="lineas-leyenda small">
+                    <span><span class="leyenda-linea leyenda-linea-periodo" aria-hidden="true"></span> PGA del período</span>
+                    <span><span class="leyenda-linea leyenda-linea-acum" aria-hidden="true"></span> PGA acumulado</span>
+                </div>
+                <details class="mt-2 small">
+                    <summary>Ver los datos en una tabla</summary>
+                    <table class="table table-sm mt-2 mb-0">
+                        <thead><tr><th>Período</th><th class="text-end">PGA del período</th><th class="text-end">PGA acumulado</th></tr></thead>
+                        <tbody>
+                        @foreach (var x in periodos)
+                        {
+                            <tr><td>@x.Periodo</td><td class="text-end">@Ui.Indice(x.DelPeriodo.Indice)</td><td class="text-end">@Ui.Indice(x.Acumulado.Indice)</td></tr>
+                        }
+                        </tbody>
+                    </table>
+                </details>
+            </div></div>
+        </div>
+    </div>
+}
+
+<h2 class="h5 mb-3">Ir a…</h2>
+<div class="row g-3">
+    @foreach (var t in atajos)
+    {
+        <div class="col-12 col-md-6 col-xl-3">
+            <a asp-controller="@t.Controlador" asp-action="@t.Accion" class="card h-100 text-decoration-none text-body">
+                <div class="card-body">
+                    <h3 class="h5 card-title">@t.Titulo</h3>
+                    <p class="card-text text-muted mb-0">@t.Texto</p>
+                </div>
+            </a>
+        </div>
+    }
+</div>

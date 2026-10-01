@@ -1,0 +1,65 @@
+@model PensumViewModel
+@{
+    ViewData["Title"] = "Pénsum (CSV)";
+    var e = Model.Estado;
+    var p = e.Pensum;
+}
+
+<h1 class="h3 mb-3">Pénsum (CSV)</h1>
+
+@if (Model.Mensaje is not null)
+{
+    <div class="alert alert-success">@Model.Mensaje</div>
+}
+@if (Model.Errores.Count > 0)
+{
+    <div class="alert alert-danger">
+        <strong>@Model.Errores[0]</strong>
+        @if (Model.Errores.Count > 1)
+        {
+            <ul class="mb-0 mt-2">
+                @foreach (var err in Model.Errores.Skip(1)) { <li>@err</li> }
+            </ul>
+        }
+    </div>
+}
+@if (Model.Advertencias.Count > 0)
+{
+    <div class="alert alert-warning">
+        <strong>Advertencias del CSV</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var a in Model.Advertencias) { <li>@a</li> }
+        </ul>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h2 class="h5">Cargar pénsum desde CSV</h2>
+        <p class="text-muted mb-2">
+            Columnas: <code>codigo, nombre, creditos, cuatrimestre, prerrequisitos, es_electiva</code>.
+            Los prerrequisitos pueden ser códigos separados por <code>;</code> o reglas como <code>59% créditos aprobados</code>.
+            Subir un archivo nuevo reemplaza el pénsum actual; si tiene errores no se guarda nada.
+        </p>
+        <form asp-action="Subir" method="post" enctype="multipart/form-data" class="row g-2 align-items-center">
+            <div class="col-auto"><input type="file" name="archivo" accept=".csv" class="form-control" required /></div>
+            <div class="col-auto"><button type="submit" class="btn btn-primary">Subir CSV</button></div>
+        </form>
+    </div>
+</div>
+
+@if (!e.HayPensum)
+{
+    <div class="alert alert-info">Todavía no hay un pénsum cargado. Sube <code>pensum_iso_unapec.csv</code> para ver el estado de cada materia.</div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h2 class="h5">Pénsum cargado</h2>
+            <p class="mb-2">@p.Materias.Count asignaturas · @p.CreditosTotales créditos · @p.Materias.Max(m => m.Materia.Cuatrimestre) cuatrimestres.</p>
+            <a asp-action="Mapa" class="btn btn-outline-primary btn-sm">Ver el mapa del pénsum</a>
+            <a asp-controller="Estudiante" asp-action="MateriasFaltantes" class="btn btn-outline-secondary btn-sm">Ver materias faltantes</a>
+        </div>
+    </div>
+}

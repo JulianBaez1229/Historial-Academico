@@ -1,0 +1,47 @@
+@model SincronizacionesViewModel
+@{
+    ViewData["Title"] = "Sincronizaciones";
+}
+
+<h1 class="h3 mb-2">Sincronizaciones</h1>
+<p class="text-muted">
+    Historial de cada intento de traer tu histórico desde Banner. Solo se sincroniza cuando pulsas
+    <strong>Actualizar desde Banner</strong>: no hay tareas en segundo plano ni reintentos automáticos.
+    Si un intento falla, los datos anteriores no se tocan.
+</p>
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger"><strong>No se pudo actualizar.</strong> @Model.Error</div> }
+
+<form asp-action="Actualizar" method="post" data-sync class="mb-3">
+    <button type="submit" class="btn btn-primary">Actualizar desde Banner</button>
+</form>
+
+@if (Model.Historial.Count == 0)
+{
+    <div class="alert alert-secondary">Todavía no hay sincronizaciones.</div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th style="width:170px">Fecha</th><th style="width:110px">Resultado</th><th>Mensaje</th></tr></thead>
+                <tbody>
+                @foreach (var s in Model.Historial)
+                {
+                    <tr>
+                        <td>@Ui.FechaHora(s.Fecha)</td>
+                        <td>
+                            @if (s.Resultado == ResultadoSincronizacion.Exito) { <span class="badge bg-success">Éxito</span> }
+                            else { <span class="badge bg-danger">Error</span> }
+                        </td>
+                        <td>@s.Mensaje</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="small text-muted mt-2">Se muestran los últimos 100 intentos.</p>
+}

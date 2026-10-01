@@ -1,0 +1,41 @@
+name: Proponer una mejora
+description: Una idea para que la aplicación sea más útil
+title: "[Mejora] "
+labels: ["mejora"]
+body:
+  - type: markdown
+    attributes:
+      value: Antes de escribir, busca si alguien ya la propuso. **No pegues datos personales.**
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué te cuesta hoy
+      description: Cuenta la situación (por ejemplo, «cuando elijo materias no veo cuántos créditos me quedan»). Sirve más que la solución.
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Qué propones
+      description: Cómo lo imaginas. Un dibujo a mano o un ejemplo con datos inventados ayuda.
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas que pensaste
+  - type: dropdown
+    id: ayuda
+    attributes:
+      label: ¿Te gustaría ayudar a hacerlo?
+      options:
+        - Sí, puedo abrir un Pull Request
+        - Sí, puedo probarlo
+        - No, solo lo propongo
+  - type: checkboxes
+    id: privacidad
+    attributes:
+      label: Privacidad
+      options:
+        - label: Lo que escribí no incluye datos personales.
+          required: true

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://historial-academico.local/pensums/universidad.schema.json",
+  "title": "Reglas de una universidad (formato 1)",
+  "description": "Se guarda en pensums/<universidad>/universidad.json. Reúne lo que cambia de una universidad a otra: la escala de calificaciones, la secuencia de períodos del año y los límites de créditos. Además de este esquema, la aplicación comprueba que la carpeta coincida con el id, que no se repitan letras ni períodos, que las letras que cuentan para el índice tengan puntos y que el umbral no pase del máximo de la escala.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formato", "id", "nombre", "escalaCalificaciones", "periodos", "limitesCreditos"],
+  "properties": {
+    "formato": { "const": 1 },
+    "id": { "description": "Identificador de la universidad (igual a su carpeta).", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "nombre": { "type": "string", "minLength": 1 },
+    "urlBanner": { "description": "Página de entrada de Banner, si la universidad lo usa.", "type": "string", "pattern": "^https://\\S+$" },
+    "escalaCalificaciones": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["letra", "aprueba", "cuentaParaIndice"],
+        "properties": {
+          "letra": { "type": "string", "pattern": "^[A-Z]{1,2}[+-]?$" },
+          "puntos": { "description": "Puntos de calidad. Solo si la letra cuenta para el índice.", "type": "integer", "minimum": 0, "maximum": 10 },
+          "aprueba": { "description": "La materia queda aprobada con esta letra.", "type": "boolean" },
+          "cuentaParaIndice": { "description": "Entra en el cálculo del índice (una F sí; una E de exenta no).", "type": "boolean" },
+          "nota": { "type": "string" }
+        }
+      }
+    },
+    "periodos": {
+      "description": "Los períodos de un año académico, en orden.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nombre"],
+        "properties": {
+          "nombre": { "type": "string", "pattern": "^[A-Z0-9]+(-[A-Z0-9]+)*$" },
+          "codigoBanner": { "description": "Código de dos dígitos que usa Banner para el período. Si uno lo tiene, todos.", "type": "string", "pattern": "^[0-9]{2}$" }
+        }
+      }
+    },
+    "limitesCreditos": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base", "alto", "umbralIndice"],
+      "properties": {
+        "base": { "description": "Créditos máximos por período.", "type": "integer", "minimum": 1, "maximum": 60 },
+        "alto": { "description": "Créditos máximos si el índice supera el umbral.", "type": "integer", "minimum": 1, "maximum": 60 },
+        "umbralIndice": { "type": "number", "minimum": 0, "maximum": 10 }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+@model GuiaViewModel
+@{
+    ViewData["Title"] = "Agregar una carrera";
+}
+
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-action="Index">Carrera y pénsum</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Agregar una carrera</li>
+</ol></nav>
+
+@if (Model.Html is null)
+{
+    <h1 class="h3 mb-2">Agregar una carrera</h1>
+    <div class="alert alert-info">No encontré la guía en tu copia de la aplicación. Busca <code>CONTRIBUTING-pensums.md</code> en la carpeta del proyecto.</div>
+    return;
+}
+
+<p class="text-muted small">Este texto es el archivo <code>@Model.Archivo</code> del proyecto.</p>
+<article class="card guia-articulo" id="guia">
+    <div class="card-body">
+        @Html.Raw(Model.Html)
+    </div>
+</article>

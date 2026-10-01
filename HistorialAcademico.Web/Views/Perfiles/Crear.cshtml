@@ -1,0 +1,71 @@
+@model CrearPerfilViewModel
+@{
+    ViewData["Title"] = Model.EsElPrimero ? "Bienvenido" : "Nuevo perfil";
+    Layout = "_LayoutSimple";
+}
+
+<div class="acceso-tarjeta">
+    @if (Model.EsElPrimero) { <partial name="_Pasos" model="new PasosViewModel(2)" /> }
+    <h1 class="h4">@(Model.EsElPrimero ? "Bienvenido" : "Crear un perfil")</h1>
+    <p class="text-muted">
+        @(Model.EsElPrimero
+            ? "Vamos a crear tu perfil. Tus datos y tu sesión de Banner se guardan solo en este equipo."
+            : "Cada perfil tiene sus propios datos y su propia sesión de Banner.")
+    </p>
+
+    @if (Model.Error is not null)
+    {
+        <div class="alert alert-danger" role="alert">@Model.Error</div>
+    }
+
+    <form asp-controller="Perfiles" asp-action="Crear" method="post" novalidate>
+        <div class="mb-3">
+            <label class="form-label" for="Nombre">Tu nombre</label>
+            <input asp-for="Nombre" class="form-control @(Model.ErrorNombre is null ? "" : "is-invalid")" maxlength="40" autocomplete="off" />
+            @if (Model.ErrorNombre is not null) { <div class="text-danger small mt-1" role="alert">@Model.ErrorNombre</div> }
+        </div>
+
+        <div class="form-check mb-2">
+            <input asp-for="SinPin" class="form-check-input" />
+            <label class="form-check-label" for="SinPin">No quiero PIN (entrar directo)</label>
+        </div>
+
+        <div id="campos-pin">
+            <div class="mb-3">
+                <label class="form-label" for="Pin">PIN o contraseña (4 a 64 caracteres)</label>
+                <input asp-for="Pin" type="password" class="form-control @(Model.ErrorPin is null ? "" : "is-invalid")" maxlength="64" autocomplete="new-password" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="ConfirmarPin">Repite el PIN</label>
+                <input asp-for="ConfirmarPin" type="password" class="form-control @(Model.ErrorPin is null ? "" : "is-invalid")" maxlength="64" autocomplete="new-password" />
+                @if (Model.ErrorPin is not null) { <div class="text-danger small mt-1" role="alert">@Model.ErrorPin</div> }
+            </div>
+            <p class="text-muted small">Se guarda solo una versión cifrada del PIN (no se puede leer de vuelta). Si lo olvidas, no hay forma de recuperarlo.</p>
+        </div>
+
+        @if (Model.HayDatosAnteriores)
+        {
+            <div class="form-check mb-3">
+                <input asp-for="TraerAnteriores" class="form-check-input" />
+                <label class="form-check-label" for="TraerAnteriores">Traer los datos que ya tenía en esta computadora</label>
+                <div class="form-text">Encontré una base de datos de una versión anterior. Se copia a tu perfil; la original no se toca ni se borra.</div>
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary">Crear perfil</button>
+        @if (Model.EsElPrimero) { <a class="btn btn-link" href="/Asistente/Bienvenida">Atrás</a> }
+        else { <a class="btn btn-link" asp-action="Index">Cancelar</a> }
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var sin = document.getElementById('SinPin'), campos = document.getElementById('campos-pin');
+            if (!sin || !campos) return;
+            function alternar() { campos.hidden = sin.checked; }
+            sin.addEventListener('change', alternar);
+            alternar();
+        })();
+    </script>
+}

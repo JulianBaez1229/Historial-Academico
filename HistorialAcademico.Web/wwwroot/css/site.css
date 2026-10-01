@@ -1,0 +1,552 @@
+/*
+ * Estructura y componentes. No hay colores fijos aquí: todo sale de las variables de tema.css
+ * (una prueba automática lo comprueba).
+ */
+html { font-size: 14px; }
+@media (min-width: 768px) { html { font-size: 16px; } }
+
+body {
+  background: var(--color-fondo);
+  color: var(--color-texto);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+.salto-contenido {
+  position: absolute;
+  left: -999px;
+  top: .5rem;
+  z-index: 3000;
+  background: var(--color-superficie);
+  color: var(--color-primario);
+  padding: .5rem .75rem;
+  border-radius: var(--radio);
+}
+.salto-contenido:focus { left: .5rem; }
+
+/* ── Estructura: menú lateral + contenido ─────────────────────────────────── */
+:root { --ancho-menu: 16rem; --ancho-menu-colapsado: 4.5rem; }
+
+.app { display: flex; min-height: 100vh; }
+
+.menu-lateral {
+  flex: 0 0 var(--ancho-menu);
+  width: var(--ancho-menu);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--color-menu-fondo);
+  color: var(--color-menu-texto);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transicion-menu) ease, flex-basis var(--transicion-menu) ease, transform var(--transicion-menu) ease;
+  z-index: 1040;
+}
+
+.menu-cab { padding: 1rem 1rem .5rem; }
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  color: var(--color-menu-texto);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.marca:hover { color: var(--color-menu-texto); }
+
+.marca-logo {
+  flex: 0 0 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--color-menu-activo-fondo);
+  color: var(--color-menu-activo-texto);
+  display: grid;
+  place-items: center;
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.menu-grupo { padding: .5rem .5rem 0; }
+
+.menu-titulo {
+  display: block;
+  padding: .75rem .75rem .25rem;
+  font-size: .7rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-menu-suave);
+  white-space: nowrap;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .55rem .75rem;
+  margin-bottom: .15rem;
+  border-radius: var(--radio);
+  color: var(--color-menu-suave);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--transicion-rapida) ease, color var(--transicion-rapida) ease;
+}
+
+.menu-item:hover { background: var(--color-menu-hover); color: var(--color-menu-texto); }
+
+.menu-item.activo {
+  background: var(--color-menu-activo-fondo);
+  color: var(--color-menu-activo-texto);
+  font-weight: 600;
+}
+
+.icono { flex: 0 0 1.35rem; width: 1.35rem; height: 1.35rem; }
+
+.icono-sm { flex-basis: 1rem; width: 1rem; height: 1rem; }
+
+.app-principal { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem 1rem;
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+  box-shadow: var(--sombra-suave);
+}
+
+.btn-menu {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+  color: var(--color-primario);
+}
+.btn-menu:hover { background: var(--color-primario-suave); }
+
+/* ── Interruptor de tema (automático · claro · oscuro) ────────────────────── */
+.selector-tema {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  padding: .2rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+  background: var(--color-superficie);
+  flex: 0 0 auto;
+}
+.selector-tema-titulo { display: none; padding: 0 .3rem 0 .6rem; font-size: .75rem; font-weight: 600; color: var(--color-texto-suave); }
+@media (min-width: 768px) { .selector-tema-titulo { display: inline; } }
+
+.selector-tema-opcion {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-texto-suave);
+  transition: background-color var(--transicion-rapida) ease, color var(--transicion-rapida) ease;
+}
+.selector-tema-opcion:hover { background: var(--color-primario-suave); color: var(--color-primario); }
+.selector-tema-opcion[aria-pressed="true"] { background: var(--color-primario); color: var(--color-sobre-primario); }
+.selector-tema-opcion .icono { flex-basis: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+.contenido { flex: 1 1 auto; padding: 1.25rem 1.25rem 1rem; width: 100%; max-width: 90rem; margin: 0 auto; }
+
+.pie {
+  padding: .9rem 1.25rem;
+  font-size: .85rem;
+  color: var(--color-texto-suave);
+  border-top: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+}
+
+.menu-fondo { display: none; }
+
+/* Menú colapsado (escritorio): solo íconos */
+.menu-colapsado .menu-lateral { flex-basis: var(--ancho-menu-colapsado); width: var(--ancho-menu-colapsado); }
+.menu-colapsado .menu-texto { display: none; }
+.menu-colapsado .menu-item, .menu-colapsado .marca { justify-content: center; }
+.menu-colapsado .menu-item { padding-left: .5rem; padding-right: .5rem; }
+.menu-colapsado .menu-cab { padding-left: .5rem; padding-right: .5rem; }
+.menu-colapsado .menu-grupo { border-top: 1px solid var(--color-menu-hover); margin-top: .35rem; }
+.menu-colapsado .menu-grupo:first-of-type { border-top: 0; }
+
+/* Móvil: el menú es un panel que se desliza sobre el contenido */
+@media (max-width: 991.98px) {
+  .menu-lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(18rem, 85vw);
+    transform: translateX(-100%);
+    box-shadow: var(--sombra-elevada);
+  }
+  .menu-abierto .menu-lateral { transform: translateX(0); }
+  .menu-abierto .menu-fondo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1035;
+    background: var(--color-velo);
+  }
+  /* En móvil el estado colapsado del escritorio no aplica. */
+  .menu-colapsado .menu-lateral { width: min(18rem, 85vw); }
+  .menu-colapsado .menu-texto { display: inline; }
+  .menu-colapsado .menu-item, .menu-colapsado .marca { justify-content: flex-start; }
+}
+
+/* ── Barra de sincronización ──────────────────────────────────────────────── */
+.barra-sync-contenido {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+}
+
+.sync-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-velo);
+  padding: 1rem;
+}
+.sync-overlay[hidden] { display: none; }
+.sync-overlay .card { max-width: 28rem; }
+
+/* ── Animaciones sutiles (se desactivan con prefers-reduced-motion en tema.css) ── */
+.card, .plan-card, .mapa-card {
+  transition: box-shadow var(--transicion-rapida) ease, transform var(--transicion-rapida) ease, border-color var(--transicion-rapida) ease;
+}
+
+a.card, .tarjeta-elevable { box-shadow: var(--sombra-suave); }
+
+a.card:hover, a.card:focus-visible, .tarjeta-elevable:hover, .plan-card:hover, .mapa-card:hover, .mapa-card:focus-visible {
+  box-shadow: var(--sombra-elevada);
+  transform: translateY(-2px);
+}
+
+.table tbody tr { transition: background-color var(--transicion-rapida) ease, box-shadow var(--transicion-rapida) ease; }
+.table-hover tbody tr:hover { box-shadow: inset 3px 0 0 var(--color-acento), var(--sombra-suave); }
+
+.btn {
+  transition: background-color var(--transicion-rapida) ease, border-color var(--transicion-rapida) ease,
+              color var(--transicion-rapida) ease, transform var(--transicion-rapida) ease, box-shadow var(--transicion-rapida) ease;
+}
+.btn:hover:not(:disabled) { transform: scale(1.03); }
+.btn:active:not(:disabled) { transform: scale(.98); }
+
+/* ── Índice global destacado ──────────────────────────────────────────────── */
+.indice-global { font-size: 3rem; font-weight: 700; line-height: 1; }
+
+/* ── Mapa del pénsum ──────────────────────────────────────────────────────── */
+.mapa { display: flex; gap: .75rem; overflow-x: auto; padding-bottom: .75rem; align-items: flex-start; }
+.mapa-columna { flex: 0 0 11.5rem; }
+.mapa-columna h2 { font-size: .85rem; font-weight: 600; text-align: center; margin-bottom: .5rem; color: var(--color-texto-suave); }
+
+.mapa-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid;
+  border-left-width: 5px;
+  border-radius: .35rem;
+  padding: .4rem .5rem;
+  margin-bottom: .45rem;
+  font-size: .78rem;
+  line-height: 1.25;
+  cursor: pointer;
+}
+.mapa-card .codigo { font-weight: 700; display: flex; justify-content: space-between; }
+.mapa-card .creditos { font-weight: 400; color: inherit; opacity: .85; }
+
+.estado-aprobada   { background: var(--estado-aprobada-fondo);   border-color: var(--estado-aprobada-borde);   color: var(--estado-aprobada-texto); }
+.estado-exenta     { background: var(--estado-exenta-fondo);     border-color: var(--estado-exenta-borde);     color: var(--estado-exenta-texto); }
+.estado-encurso    { background: var(--estado-encurso-fondo);    border-color: var(--estado-encurso-borde);    color: var(--estado-encurso-texto); }
+.estado-disponible { background: var(--estado-disponible-fondo); border-color: var(--estado-disponible-borde); color: var(--estado-disponible-texto); }
+.estado-bloqueada  { background: var(--estado-bloqueada-fondo);  border-color: var(--estado-bloqueada-borde);  color: var(--estado-bloqueada-texto); }
+
+.leyenda .cuadro { display: inline-block; width: .9rem; height: .9rem; border: 1px solid; border-radius: .2rem; vertical-align: -.1rem; margin-right: .25rem; }
+
+/* ── Planificador ─────────────────────────────────────────────────────────── */
+.plan-columnas { display: flex; gap: .75rem; overflow-x: auto; padding-bottom: .75rem; align-items: flex-start; }
+
+.plan-col { flex: 0 0 17rem; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: var(--radio); }
+.plan-col-cab { padding: .5rem .6rem; border-bottom: 1px solid var(--color-borde); }
+.plan-col-cuerpo, .lista-pendientes { min-height: 5rem; padding: .5rem; }
+.lista-pendientes { max-height: 80vh; overflow-y: auto; }
+
+.plan-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--color-primario);
+  border-radius: .3rem;
+  padding: .4rem .5rem;
+  margin-bottom: .5rem;
+  font-size: .8rem;
+  cursor: grab;
+}
+.plan-card.invalida { border-left-color: var(--color-peligro); background: var(--color-superficie); }
+.plan-card.arrastrando { opacity: .45; }
+
+.zona-suelta.drop-activa { background: var(--color-primario-suave); outline: 2px dashed var(--color-primario); outline-offset: -4px; }
+
+.btn-close-sm { font-size: .55rem; vertical-align: middle; }
+
+/* Columnas alineadas entre las tablas de distintos períodos/cuatrimestres */
+.tabla-fija { table-layout: fixed; min-width: 640px; }
+
+/* ── Dashboard de inicio ──────────────────────────────────────────────────── */
+.tarjeta-dato-cab { display: flex; align-items: center; gap: .5rem; color: var(--color-texto-suave); font-size: .85rem; font-weight: 600; }
+.icono-dato { flex: 0 0 1.25rem; width: 1.25rem; height: 1.25rem; color: var(--color-primario); }
+.tarjeta-dato-valor { font-size: 2.25rem; font-weight: 700; line-height: 1.15; color: var(--color-primario); margin: .25rem 0; }
+.tarjeta-dato-total { font-size: 1.1rem; font-weight: 500; color: var(--color-texto-suave); }
+
+.dona-caja { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; }
+.dona { width: 11rem; height: 11rem; flex: 0 0 11rem; }
+.dona-pista { stroke: var(--grafico-rejilla); }
+.dona-segmento.dona-aprobada { stroke: var(--grafico-aprobada); }
+.dona-segmento.dona-encurso { stroke: var(--grafico-encurso); }
+.dona-segmento.dona-faltante { stroke: var(--grafico-faltante); }
+.dona-centro { fill: var(--color-texto); font-size: 20px; font-weight: 700; }
+.dona-leyenda li { margin-bottom: .35rem; }
+.dona-muestra { display: inline-block; width: .85rem; height: .85rem; border-radius: .2rem; vertical-align: -.1rem; margin-right: .35rem; }
+.dona-muestra.dona-aprobada { background: var(--grafico-aprobada); }
+.dona-muestra.dona-encurso { background: var(--grafico-encurso); }
+.dona-muestra.dona-faltante { background: var(--grafico-faltante); }
+
+.lineas { width: 100%; height: auto; max-height: 20rem; }
+.lineas-rejilla { stroke: var(--grafico-rejilla); stroke-width: 1; }
+.lineas-eje { fill: var(--color-texto-suave); font-size: 10px; }
+.lineas-valor { fill: var(--grafico-periodo); font-size: 10px; font-weight: 600; }
+.linea { stroke-width: 2.5; stroke-linejoin: round; }
+.linea-periodo { stroke: var(--grafico-periodo); }
+.linea-acum { stroke: var(--grafico-acumulado); stroke-dasharray: 6 4; }
+.marcador { stroke: var(--color-superficie); stroke-width: 1.5; }
+.marcador.linea-periodo { fill: var(--grafico-periodo); }
+.marcador.linea-acum { fill: var(--grafico-acumulado); stroke-dasharray: none; }
+.lineas-leyenda { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: .25rem; color: var(--color-texto-suave); }
+.leyenda-linea { display: inline-block; width: 1.75rem; vertical-align: middle; border-top: 3px solid; margin-right: .35rem; }
+.leyenda-linea-periodo { border-color: var(--grafico-periodo); }
+.leyenda-linea-acum { border-color: var(--grafico-acumulado); border-top-style: dashed; }
+
+/* ── Mapa del pénsum: ícono por estado y resaltado de requisitos ──────────── */
+.icono-estado { flex: 0 0 .95rem; width: .95rem; height: .95rem; }
+.mapa-card { position: relative; }
+.mapa-card .icono-estado { margin-right: .3rem; vertical-align: -.15rem; }
+.codigo-texto { display: inline-flex; align-items: center; }
+.leyenda-estado { display: inline-flex; align-items: center; gap: .4rem; }
+.leyenda .cuadro { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; margin-right: 0; vertical-align: middle; }
+.leyenda .cuadro .icono-estado { flex-basis: 1rem; width: 1rem; height: 1rem; margin: 0; }
+.mapa-resumen { min-height: 1.6rem; }
+
+.mapa-enfoque .mapa-card { opacity: .45; }
+.mapa-enfoque .mapa-card.mapa-actual, .mapa-enfoque .mapa-card.mapa-requisito, .mapa-enfoque .mapa-card.mapa-desbloquea { opacity: 1; }
+.mapa-card.mapa-actual { box-shadow: 0 0 0 3px var(--color-primario); }
+.mapa-card.mapa-requisito { outline: 3px dashed var(--mapa-requisito-fondo); outline-offset: 1px; }
+.mapa-card.mapa-desbloquea { outline: 3px solid var(--mapa-desbloquea-fondo); outline-offset: 1px; }
+.mapa-card.mapa-requisito::after, .mapa-card.mapa-desbloquea::after {
+  position: absolute;
+  top: -.6rem;
+  right: .4rem;
+  padding: 0 .45rem;
+  border-radius: 999px;
+  font-size: .65rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.mapa-card.mapa-requisito::after { content: "Requisito"; background: var(--mapa-requisito-fondo); color: var(--mapa-requisito-texto); }
+.mapa-card.mapa-desbloquea::after { content: "Desbloquea"; background: var(--mapa-desbloquea-fondo); color: var(--mapa-desbloquea-texto); }
+
+/* ── Horario semanal tentativo ────────────────────────────────────────────── */
+.horario {
+  --alto-hora: 3.25rem;
+  display: grid;
+  grid-template-columns: 4.5rem;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(6rem, 1fr);
+  overflow-x: auto;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  background-color: var(--color-superficie);
+}
+.horario-dia-titulo {
+  height: 2rem;
+  line-height: 2rem;
+  text-align: center;
+  font-weight: 600;
+  background-color: var(--color-superficie-2);
+  border-bottom: 1px solid var(--color-borde);
+}
+.horario-dia { border-left: 1px solid var(--color-borde); min-width: 0; }
+.horario-cuerpo {
+  position: relative;
+  height: calc(var(--alto-hora) * var(--filas));
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--alto-hora) - 1px), var(--color-borde) calc(var(--alto-hora) - 1px), var(--color-borde) var(--alto-hora));
+}
+.horario-horas .horario-cuerpo { background-image: none; }
+.horario-hora {
+  height: var(--alto-hora);
+  padding: .1rem .35rem 0 0;
+  text-align: right;
+  font-size: .75rem;
+  color: var(--color-texto-suave);
+}
+.horario-celda {
+  position: absolute;
+  box-sizing: border-box;
+  padding: .15rem .3rem;
+  overflow: hidden;
+  font-size: .75rem;
+  line-height: 1.2;
+  border-radius: .3rem;
+  display: flex;
+  flex-direction: column;
+}
+.horario-celda-titulo { font-weight: 700; }
+.horario-celda-choque { font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.horario-clase {
+  background-color: var(--estado-encurso-fondo);
+  color: var(--estado-encurso-texto);
+  border: 1px solid var(--estado-encurso-borde);
+  border-left-width: 4px;
+  z-index: 2;
+}
+.horario-choque {
+  background-color: var(--aviso-peligro-fondo);
+  color: var(--aviso-peligro-texto);
+  border: 2px dashed var(--color-peligro);
+}
+.horario-nodisp {
+  background-color: var(--estado-bloqueada-fondo);
+  background-image: repeating-linear-gradient(135deg, transparent 0, transparent 6px, var(--color-fila-hover) 6px, var(--color-fila-hover) 12px);
+  color: var(--estado-bloqueada-texto);
+  border: 1px solid var(--estado-bloqueada-borde);
+  z-index: 1;
+}
+.horario-leyenda {
+  display: inline-block;
+  width: .9rem;
+  height: .9rem;
+  vertical-align: -.1rem;
+  border-radius: .2rem;
+}
+.horario-leyenda-clase { background-color: var(--estado-encurso-fondo); border: 1px solid var(--estado-encurso-borde); }
+.horario-leyenda-choque { background-color: var(--aviso-peligro-fondo); border: 2px dashed var(--color-peligro); }
+.horario-leyenda-nodisp { background-color: var(--estado-bloqueada-fondo); border: 1px solid var(--estado-bloqueada-borde); }
+
+/* Una sección que choca con mis horas no disponibles: se distingue sin bajar el contraste del texto. */
+.seccion-atenuada > td { background-color: var(--color-superficie-2); color: var(--color-texto-suave); font-style: italic; }
+
+.cuadricula-horas th, .cuadricula-horas td { padding: .2rem .4rem; }
+.cuadricula-horas .form-check-input { margin: 0; }
+
+/* ── Carrera y pénsum ─────────────────────────────────────────────────────── */
+.fila-activa > td { background-color: var(--color-primario-suave); color: var(--color-texto); }
+/* Vista previa de un pénsum importado. */
+.tabla-revision .campo-corto { min-width: 4rem; max-width: 6rem; }
+.tabla-revision .fila-con-problema > td { background-color: var(--aviso-peligro-fondo); color: var(--aviso-peligro-texto); }
+.tabla-revision .fila-problema > td { background-color: var(--aviso-peligro-fondo); color: var(--aviso-peligro-texto); font-weight: 600; }
+.tabla-revision .fila-quitada > td { background-color: var(--color-superficie-2); color: var(--color-texto-suave); text-decoration: line-through; }
+.tabla-revision .fila-quitada input { text-decoration: line-through; }
+
+.guia-articulo h2 { font-size: 1.5rem; margin-bottom: 1rem; }
+.guia-articulo h3 { font-size: 1.2rem; margin-top: 2rem; padding-bottom: .3rem; border-bottom: 1px solid var(--color-borde); }
+.guia-articulo h4 { font-size: 1.05rem; margin-top: 1.5rem; }
+.guia-articulo li { margin-bottom: .35rem; }
+.guia-codigo {
+  padding: .75rem 1rem;
+  overflow-x: auto;
+  font-size: .85rem;
+  color: var(--color-texto);
+  background-color: var(--color-superficie-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+.guia-codigo code { color: inherit; }
+.guia-tabla th { background-color: var(--color-superficie-2); }
+
+
+/* ── Perfiles: elegir, crear y el indicador de la barra superior ──────────── */
+.perfil-chip { display: inline-flex; align-items: center; gap: .4rem; margin-inline-start: auto; flex: 0 0 auto; }
+.perfil-chip-nombre { display: inline-flex; align-items: center; gap: .3rem; font-size: .85rem; font-weight: 600; color: var(--color-texto); max-width: 10rem; }
+.perfil-chip-nombre span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perfil-chip-nombre .icono { flex: 0 0 1.1rem; width: 1.1rem; height: 1.1rem; color: var(--color-primario); }
+
+.acceso { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 1.5rem 1rem; }
+.acceso-marca { display: flex; align-items: center; gap: .75rem; font-weight: 600; color: var(--color-texto); }
+.acceso-tarjeta {
+  width: 100%;
+  max-width: 30rem;
+  padding: 1.5rem;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+}
+.acceso-pie { max-width: 30rem; margin: 0; text-align: center; font-size: .8rem; color: var(--color-texto-suave); }
+
+.lista-perfiles { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: .6rem; }
+.perfil-fila { padding: .75rem; border: 1px solid var(--color-borde); border-radius: var(--radio); background: var(--color-superficie-2); }
+.perfil-cab { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+.perfil-nombre { font-weight: 600; overflow-wrap: anywhere; }
+.perfil-avatar { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--color-primario-suave); color: var(--color-primario); }
+.perfil-avatar .icono { width: 1.1rem; height: 1.1rem; }
+.perfil-pin { display: flex; gap: .5rem; }
+
+/* ── Asistente de primer uso ───────────────────────────────────────────────── */
+.acceso-ancho { max-width: 52rem; }
+.asistente-pasos-nav { margin-bottom: 1rem; }
+.asistente-paso-texto { font-size: .8rem; font-weight: 600; color: var(--color-texto-suave); }
+.asistente-pasos { list-style: none; margin: 0; padding: 0; display: flex; gap: .5rem; }
+.asistente-pasos li { flex: 1 1 0; display: flex; align-items: center; gap: .4rem; min-width: 0; padding-top: .4rem; border-top: 3px solid var(--color-borde); color: var(--color-texto-suave); font-size: .8rem; }
+.asistente-pasos li.hecho { border-top-color: var(--color-exito); color: var(--color-texto); }
+.asistente-pasos li.actual { border-top-color: var(--color-primario); color: var(--color-texto); font-weight: 600; }
+.asistente-num { flex: 0 0 1.4rem; height: 1.4rem; display: inline-grid; place-items: center; border-radius: 50%; border: 1px solid var(--color-borde); font-size: .75rem; }
+.asistente-pasos li.actual .asistente-num { background: var(--color-primario); border-color: var(--color-primario); color: var(--color-sobre-primario); }
+.asistente-pasos li.hecho .asistente-num { background: var(--color-exito); border-color: var(--color-exito); color: var(--color-sobre-primario); }
+.asistente-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 575px) { .asistente-nombre { display: none; } .asistente-pasos li.actual .asistente-nombre { display: inline; } }
+.asistente-privacidad { padding-left: 1.2rem; }
+.asistente-privacidad li { margin-bottom: .4rem; }
+
+
+/* ── Planificador: mover con teclado o toque, y columnas donde no puede ir ─────── */
+.plan-col.no-permitida { border-style: dashed; background: var(--color-superficie-2); }
+.plan-col.no-permitida .plan-col-cuerpo { background: repeating-linear-gradient(135deg, transparent 0 .6rem, var(--color-fila-hover) .6rem 1.2rem); }
+.plan-col-motivo, .plan-col-aviso { margin-top: .25rem; overflow-wrap: anywhere; }
+.plan-card.seleccionada { outline: 3px solid var(--color-primario); outline-offset: 1px; }
+.btn-mover { padding: .1rem .5rem; font-size: .75rem; }
+.filtro-chip { padding: .1rem .5rem; font-size: .75rem; }
+.filtro-chip[aria-pressed="true"] { background: var(--color-primario); border-color: var(--color-primario); color: var(--color-sobre-primario); }
+.plan-card[hidden] { display: none; }
+
+.plan-modo { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1rem; padding: .5rem .75rem; background: var(--color-primario-suave); color: var(--color-texto); border: 1px solid var(--color-primario); border-radius: var(--radio); }
+.plan-modo[hidden] { display: none; }
+
+.alerta-plan { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; border-left: 4px solid var(--color-alerta); }
+.alerta-plan.alerta-grave { border-left-color: var(--color-peligro); }
+.alerta-icono { color: var(--color-alerta-texto); }
+.alerta-grave .alerta-icono { color: var(--color-peligro); }
+.alerta-texto { flex: 1 1 18rem; overflow-wrap: anywhere; }
+.alerta-accion { margin: 0; }

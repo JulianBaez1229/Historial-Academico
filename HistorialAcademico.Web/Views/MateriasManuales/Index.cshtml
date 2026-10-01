@@ -1,0 +1,130 @@
+@model MateriasManualesViewModel
+@using HistorialAcademico.Core.Manual
+@{
+    ViewData["Title"] = "Materias a mano";
+}
+
+<h1 class="h3 mb-2">Materias a mano</h1>
+<p class="text-muted">
+    ¿No usas Banner, o prefieres no conectarlo? Registra aquí las materias que tomaste: con ellas se calculan tu índice, tu avance en el
+    pénsum y las materias que puedes inscribir, igual que con el histórico de Banner. Si conectas Banner después, Banner manda en los
+    períodos que trae y lo que escribiste en esos períodos queda guardado sin contar, para que nada se duplique.
+</p>
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger" role="alert" id="error-manual">
+        @Model.Error
+        @if (Model.Detalles.Count > 0)
+        {
+            <ul class="mb-0 mt-2 small">
+                @foreach (var d in Model.Detalles) { <li>@d</li> }
+            </ul>
+        }
+    </div>
+}
+
+@if (!Model.HayPensum)
+{
+    <div class="alert alert-info" id="sin-pensum">
+        Primero elige tu carrera: con ella se comprueba que cada código exista y se sabe cuántos créditos vale.
+        <a asp-controller="Carrera" asp-action="Index">Ir a «Carrera y pénsum»</a>.
+    </div>
+    return;
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="h5">Agregar una materia</h2>
+        <form asp-action="Agregar" method="post" class="row g-2 align-items-end" id="form-agregar" novalidate>
+            <div class="col-md-3">
+                <label for="codigo" class="form-label">Código del pénsum</label>
+                <input id="codigo" name="codigo" class="form-control" list="lista-codigos" value="@Model.Codigo" placeholder="@Model.Pensum[0].Codigo" autocomplete="off" maxlength="20" />
+                <datalist id="lista-codigos">
+                    @foreach (var m in Model.Pensum) { <option value="@m.Codigo">@m.Nombre</option> }
+                </datalist>
+            </div>
+            <div class="col-md-3">
+                <label for="periodo" class="form-label">Período</label>
+                <input id="periodo" name="periodo" class="form-control" list="lista-periodos" value="@Model.Periodo" placeholder="@Model.EjemploPeriodo" autocomplete="off" maxlength="20" />
+                <datalist id="lista-periodos">
+                    @foreach (var p in Model.Periodos) { <option value="@p"></option> }
+                </datalist>
+            </div>
+            <div class="col-md-3">
+                <label for="calificacion" class="form-label">Calificación</label>
+                <select id="calificacion" name="calificacion" class="form-select">
+                    <option value="">En curso (sin calificación)</option>
+                    @foreach (var l in Model.Letras) { <option value="@l" selected="@(string.Equals(l, Model.Calificacion, StringComparison.OrdinalIgnoreCase))">@l</option> }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Agregar</button>
+            </div>
+        </form>
+        <p class="form-text mb-0 mt-2">
+            Escribe el período como «@Model.EjemploPeriodo». Si la materia ya estaba registrada en ese período, se cambia su calificación.
+        </p>
+    </div>
+</div>
+
+<div class="card mb-3" id="importar-csv">
+    <div class="card-body">
+        <h2 class="h5">Importar desde un CSV</h2>
+        <p class="mb-2">
+            ¿Tienes muchas materias? Descarga la plantilla, llénala (una materia por línea: código, período y calificación) e impórtala.
+            Se importa todo o nada: si algo está mal te digo en qué línea, sin guardar nada a medias.
+        </p>
+        <form asp-action="Importar" method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label for="archivo" class="form-label">Archivo CSV</label>
+                <input id="archivo" name="archivo" type="file" accept=".csv,text/csv,text/plain" class="form-control" />
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-primary">Importar</button></div>
+            <div class="col-auto"><a class="btn btn-outline-secondary" asp-action="Plantilla" id="descargar-plantilla">Descargar la plantilla</a></div>
+        </form>
+        <p class="form-text mb-0 mt-2">Si Excel abre la plantilla en una sola columna, guárdala de nuevo como «CSV (delimitado por comas)». También sirven el punto y coma y el tabulador.</p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header"><strong>Tus materias registradas</strong> <span class="text-muted small">(@Model.Filas.Count)</span></div>
+    @if (Model.Filas.Count == 0)
+    {
+        <div class="card-body text-muted" id="sin-filas">Todavía no registraste ninguna materia.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0" id="tabla-manuales">
+                <thead><tr><th>Período</th><th>Código</th><th>Asignatura</th><th class="text-end">Créditos</th><th>Calificación</th><th></th><th></th></tr></thead>
+                <tbody>
+                @foreach (var f in Model.Filas)
+                {
+                    <tr class="@(f.Estado == EstadoManual.Aplicada ? "" : "text-muted")">
+                        <td>@f.Periodo</td>
+                        <td class="fw-semibold">@f.Codigo</td>
+                        <td>@(f.Nombre.Length > 0 ? f.Nombre : "—")</td>
+                        <td class="text-end">@(f.Creditos > 0 ? f.Creditos.ToString() : "—")</td>
+                        <td>@(f.EnCurso ? "En curso" : f.Calificacion)</td>
+                        <td>
+                            @switch (f.Estado)
+                            {
+                                case EstadoManual.IgnoradaPorBanner: <span class="badge bg-secondary" title="Banner ya trae este período: se usa lo de Banner y esta materia no cuenta.">Banner ya trae este período</span> break;
+                                case EstadoManual.SinPensum: <span class="badge bg-warning" title="Cambiaste de carrera y este código no está en el pénsum actual: no cuenta.">No está en tu pénsum actual</span> break;
+                            }
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="Eliminar" method="post" onsubmit="return confirm('¿Quitar @f.Codigo de @f.Periodo?');">
+                                <input type="hidden" name="id" value="@f.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Quitar @f.Codigo de @f.Periodo">Quitar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

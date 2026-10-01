@@ -1,0 +1,15 @@
+@model PasosViewModel
+<nav aria-label="Pasos del asistente" class="asistente-pasos-nav">
+    <p class="asistente-paso-texto mb-2">Paso @Model.Actual de @PasosViewModel.Nombres.Length</p>
+    <ol class="asistente-pasos">
+        @for (var i = 0; i < PasosViewModel.Nombres.Length; i++)
+        {
+            var numero = i + 1;
+            var estado = numero == Model.Actual ? "actual" : numero < Model.Actual ? "hecho" : "";
+            <li class="@estado" aria-current="@(numero == Model.Actual ? "step" : null)">
+                <span class="asistente-num" aria-hidden="true">@numero</span>
+                <span class="asistente-nombre">@PasosViewModel.Nombres[i]</span>
+            </li>
+        }
+    </ol>
+</nav>

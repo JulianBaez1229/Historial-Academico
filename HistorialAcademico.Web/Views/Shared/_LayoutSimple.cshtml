@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>@ViewData["Title"] – Historial Académico</title>
+    @* Mismo tema que el resto de la aplicación (claro, oscuro o "sistema"), decidido antes de pintar. *@
+    <script>
+        try {
+            var preferencia = 'sistema';
+            try { preferencia = localStorage.getItem('tema') || 'sistema'; } catch (e) { }
+            if (preferencia !== 'claro' && preferencia !== 'oscuro') preferencia = 'sistema';
+            var oscuro = preferencia === 'oscuro' || (preferencia === 'sistema' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.setAttribute('data-tema', oscuro ? 'oscuro' : 'claro');
+            document.documentElement.setAttribute('data-tema-preferencia', preferencia);
+        } catch (e) { }
+    </script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/tema.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="salto-contenido" href="#contenido">Saltar al contenido</a>
+
+    <main id="contenido" class="acceso" role="main">
+        <div class="acceso-marca">
+            <span class="marca-logo" aria-hidden="true">HA</span>
+            <span class="acceso-marca-texto">Historial Académico</span>
+        </div>
+        @RenderBody()
+        <p class="acceso-pie">Uso personal · los datos se guardan solo en este equipo, en una carpeta tuya, nunca en un servidor.</p>
+    </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

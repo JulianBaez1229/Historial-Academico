@@ -1,0 +1,66 @@
+@using HistorialAcademico.Web.Controllers
+@model PerfilesIndexViewModel
+@{
+    ViewData["Title"] = "¿Quién eres?";
+    Layout = "_LayoutSimple";
+}
+
+<div class="acceso-tarjeta">
+    <h1 class="h4">¿Quién eres?</h1>
+    <p class="text-muted">Cada perfil tiene sus propios datos y su propia sesión de Banner. Elige el tuyo.</p>
+
+    @if (TempData["Mensaje"] is string aviso) { <div class="alert alert-success" role="status" id="aviso-borrado">@aviso</div> }
+    @if (TempData["Error"] is string fallo) { <div class="alert alert-danger" role="alert" id="error-borrado">@fallo</div> }
+    @if (!string.IsNullOrEmpty(Model.Advertencia))
+    {
+        <div class="alert alert-warning" role="alert">@Model.Advertencia</div>
+    }
+    @if (Model.Error is not null && Model.IdConError is null)
+    {
+        <div class="alert alert-danger" role="alert">@Model.Error</div>
+    }
+
+    <ul class="lista-perfiles">
+        @foreach (var p in Model.Perfiles)
+        {
+            <li class="perfil-fila">
+                <form asp-controller="Perfiles" asp-action="Entrar" method="post" class="perfil-form">
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <div class="perfil-cab">
+                        <span class="perfil-avatar" aria-hidden="true">@Iconos.Svg("usuario")</span>
+                        <span class="perfil-nombre">@p.Nombre</span>
+                        @if (p.TienePin) { <span class="badge bg-secondary">Con PIN</span> }
+                    </div>
+                    @if (p.TienePin)
+                    {
+                        <div class="perfil-pin">
+                            <label class="visually-hidden" for="pin-@p.Id">PIN de @p.Nombre</label>
+                            <input id="pin-@p.Id" name="pin" type="password" class="form-control" autocomplete="off" placeholder="PIN o contraseña"
+                                   maxlength="64" disabled="@(p.Espera is not null)" />
+                            <button type="submit" class="btn btn-primary" disabled="@(p.Espera is not null)">Entrar</button>
+                        </div>
+                        @if (Model.IdConError == p.Id && Model.Error is not null)
+                        {
+                            <div class="text-danger small" role="alert">@Model.Error</div>
+                        }
+                        else if (p.Espera is { } espera)
+                        {
+                            <div class="text-danger small" role="alert">Bloqueado por varios PIN incorrectos. Espera @PerfilesController.TextoEspera(espera).</div>
+                        }
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                    }
+                </form>
+            </li>
+        }
+    </ul>
+
+    <a class="btn btn-outline-primary" asp-action="Crear">Crear otro perfil</a>
+
+    <p class="text-muted small mt-3 mb-0">
+        El PIN evita que otra persona abra tu perfil desde esta aplicación, pero no cifra los archivos: quien pueda leer las carpetas de tu
+        usuario en este equipo podría verlos. Para eso, usa el bloqueo de sesión de Windows.
+    </p>
+</div>

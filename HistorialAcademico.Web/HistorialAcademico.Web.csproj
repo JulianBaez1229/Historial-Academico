@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\HistorialAcademico.Core\HistorialAcademico.Core.csproj" />
+    <ProjectReference Include="..\HistorialAcademico.Banner\HistorialAcademico.Banner.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.*" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>7cc3a029-c78e-4d6b-851d-22da9450d300</UserSecretsId>
+    <!-- La versión real la pone la etiqueta del Release (dotnet publish -p:Version=1.2.3); esta es la de quien compila desde el código. -->
+    <Version>0.0.0-desarrollo</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <!-- De qué repositorio de GitHub salió el programa (usuario/repositorio): lo escribe el flujo de Release con -p:RepositorioGitHub=... para que
+       el aviso de versiones nuevas sepa dónde mirar. Vacío al compilar desde el código: no consulta nada. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RepositorioGitHub</_Parameter1>
+      <_Parameter2>$(RepositorioGitHub)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!-- El programa publicado lleva los pénsums y las guías al lado del ejecutable (la aplicación busca «pensums» desde su carpeta). -->
+  <ItemGroup>
+    <Content Include="..\pensums\**\*.json" Exclude="..\pensums\**\personal-*.json" Link="pensums\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\LICENSE;..\LEEME.txt" Link="%(Filename)%(Extension)" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

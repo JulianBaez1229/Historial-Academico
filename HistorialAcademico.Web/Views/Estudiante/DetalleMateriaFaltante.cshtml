@@ -1,0 +1,84 @@
+@model DetalleFaltanteViewModel
+@{
+    var f = Model.Materia;
+    var m = f.Materia;
+    ViewData["Title"] = m.Codigo;
+}
+
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-action="MateriasFaltantes">Materias Faltantes</a></li>
+    <li class="breadcrumb-item active" aria-current="page">@m.Codigo</li>
+</ol></nav>
+
+<h1 class="h3 mb-3">@m.Codigo – @m.Nombre</h1>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Código</dt><dd class="col-sm-8">@m.Codigo</dd>
+            <dt class="col-sm-4">Asignatura</dt><dd class="col-sm-8">@m.Nombre @if (m.EsElectiva) { <span class="badge bg-light text-dark border">Electiva</span> }</dd>
+            <dt class="col-sm-4">Créditos</dt><dd class="col-sm-8">@m.Creditos</dd>
+            <dt class="col-sm-4">Cuatrimestre</dt><dd class="col-sm-8">@m.Cuatrimestre</dd>
+            <dt class="col-sm-4">Prerrequisito</dt><dd class="col-sm-8">@Ui.PrerrequisitoTexto(m.Prerrequisitos)</dd>
+            <dt class="col-sm-4">Estado</dt>
+            <dd class="col-sm-8">
+                <span class="badge @Ui.Badge(f.Estado)">@Ui.Texto(f.Estado)</span>
+                @if (f.Calificacion is not null) { <span class="ms-2">Calificación @f.Calificacion · @f.Periodo</span> }
+                @if (f.Estado == EstadoMateria.EnCurso) { <span class="ms-2">@f.Periodo</span> }
+                @if (f.PorEquivalencia is not null) { <div class="small text-muted">Por equivalencia con @f.PorEquivalencia</div> }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@if (Model.Requisitos.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Prerrequisitos</div>
+        <ul class="list-group list-group-flush">
+            @foreach (var r in Model.Requisitos)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>@r.Texto</span>
+                    <span class="badge @r.Badge">@r.Situacion</span>
+                </li>
+            }
+        </ul>
+    </div>
+}
+else
+{
+    <div class="alert alert-secondary">Esta materia no tiene prerrequisitos.</div>
+}
+
+@if (Model.Opciones is not null)
+{
+    <div class="card mb-3">
+        <div class="card-header">Opciones para esta electiva</div>
+        <ul class="list-group list-group-flush">
+            @foreach (var o in Model.Opciones)
+            {
+                <li class="list-group-item"><strong>@o.Codigo</strong> – @o.Nombre</li>
+            }
+        </ul>
+        <div class="card-footer small text-muted">@ElectivasReferencia.Certificacion</div>
+    </div>
+}
+
+@if (Model.Desbloquea.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Materias que dependen de esta</div>
+        <ul class="list-group list-group-flush">
+            @foreach (var d in Model.Desbloquea)
+            {
+                <li class="list-group-item d-flex justify-content-between">
+                    <a asp-action="DetalleMateriaFaltante" asp-route-codigo="@d.Materia.Codigo">@d.Materia.Codigo – @d.Materia.Nombre</a>
+                    <span class="badge @Ui.Badge(d.Estado)">@Ui.Texto(d.Estado)</span>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+<a asp-action="MateriasFaltantes" class="btn btn-outline-secondary">← Volver a Materias Faltantes</a>

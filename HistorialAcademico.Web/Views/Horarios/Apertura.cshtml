@@ -1,0 +1,99 @@
+@model AperturaViewModel
+@using HistorialAcademico.Web.Services
+@{
+    ViewData["Title"] = "Solicitar apertura";
+    ViewData["Pestana"] = "apertura";
+}
+
+@section Scripts {
+    <script src="~/js/horario.js" asp-append-version="true"></script>
+}
+
+<h1 class="h3 mb-2">Horarios de Banner</h1>
+<partial name="_Pestanas" />
+
+@if (Model.Mensaje is not null) { <div class="alert alert-success" role="status">@Model.Mensaje</div> }
+@if (Model.Error is not null) { <div class="alert alert-danger" role="alert">@Model.Error</div> }
+
+<p class="text-muted">
+    Las materias que necesitas y todavía no tienen secciones publicadas: márcalas aquí para recordar pedir su apertura en la escuela.
+    Puedes marcarlas también desde «Secciones de Banner». Abajo tienes el texto listo para enviar por correo.
+</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="h5">Materias marcadas</h2>
+        @if (Model.Items.Count == 0)
+        {
+            <p class="text-muted mb-3" id="sin-marcadas">No has marcado ninguna materia.</p>
+        }
+        else
+        {
+            <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle mb-0" id="tabla-apertura">
+                    <thead><tr><th>Materia</th><th>Nota</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var i in Model.Items)
+                    {
+                        <tr>
+                            <td><span class="fw-semibold">@i.Codigo</span> <span class="text-muted">@i.Nombre</span></td>
+                            <td>
+                                <form asp-action="MarcarApertura" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="codigo" value="@i.Codigo" /><input type="hidden" name="periodo" value="@Model.Periodo" />
+                                    <input name="nota" class="form-control form-control-sm" maxlength="@AperturaService.MaxNota" value="@i.Nota" placeholder="Nota (opcional)" aria-label="Nota de @i.Codigo" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Guardar</button>
+                                </form>
+                            </td>
+                            <td class="text-end">
+                                <form asp-action="QuitarApertura" method="post">
+                                    <input type="hidden" name="codigo" value="@i.Codigo" /><input type="hidden" name="periodo" value="@Model.Periodo" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Quitar @i.Codigo de la lista">Quitar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.Candidatas.Count > 0)
+        {
+            <form asp-action="MarcarApertura" method="post" class="row g-2 align-items-end">
+                <input type="hidden" name="periodo" value="@Model.Periodo" />
+                <div class="col-md-5">
+                    <label for="materiaNueva" class="form-label">Agregar una materia</label>
+                    <select id="materiaNueva" name="codigo" class="form-select">
+                        @foreach (var c in Model.Candidatas) { <option value="@c.Codigo">@c.Codigo · @c.Nombre</option> }
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="notaNueva" class="form-label">Nota (opcional)</label>
+                    <input id="notaNueva" name="nota" class="form-control" maxlength="@AperturaService.MaxNota" placeholder="Ej. la necesito para graduarme en SEP-DIC 2027" />
+                </div>
+                <div class="col-md-2 d-grid"><button type="submit" class="btn btn-primary">Marcar</button></div>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-end gap-2 mb-2">
+            <h2 class="h5 mb-0 me-auto">Texto para enviar por correo</h2>
+            <form method="get" asp-action="Apertura" class="d-flex align-items-center gap-2">
+                <label for="periodoTexto" class="mb-0">Período:</label>
+                <select id="periodoTexto" name="periodo" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    @foreach (var p in Model.Periodos) { <option value="@p.Codigo" selected="@(p.Codigo == Model.Periodo)">@p.Nombre</option> }
+                </select>
+            </form>
+        </div>
+        <label for="texto-solicitud" class="visually-hidden">Texto de la solicitud</label>
+        <textarea id="texto-solicitud" class="form-control font-monospace" rows="@Math.Clamp(Model.Texto.Split('\n').Length + 1, 8, 24)" readonly>@Model.Texto</textarea>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+            <button type="button" class="btn btn-primary" id="copiar-texto" hidden>Copiar texto</button>
+            <a class="btn btn-outline-secondary" asp-action="AperturaTexto" asp-route-periodo="@Model.Periodo" id="descargar-texto">Descargar como .txt</a>
+            <span class="small text-muted align-self-center" id="copiado" role="status"></span>
+        </div>
+    </div>
+</div>

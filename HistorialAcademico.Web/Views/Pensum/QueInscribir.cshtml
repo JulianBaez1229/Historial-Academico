@@ -1,0 +1,53 @@
+@model EstadoAcademico
+@{
+    ViewData["Title"] = "Qué puedo inscribir";
+    var disponibles = Model.Pensum.Materias
+        .Where(m => m.Estado == EstadoMateria.Disponible)
+        .OrderBy(m => m.Materia.Cuatrimestre).ThenBy(m => m.Materia.Codigo)
+        .ToList();
+}
+
+<h1 class="h3 mb-2">Qué puedo inscribir</h1>
+<p class="text-muted">
+    Materias del pénsum cuyos prerrequisitos (materias y porcentajes de créditos) ya están cumplidos.
+    Solo cuentan las materias <strong>aprobadas o exentas</strong>: lo que estás cursando todavía no desbloquea nada.
+</p>
+
+@if (!Model.HayPensum)
+{
+    <div class="alert alert-info">Falta cargar el pénsum. <a asp-action="Index">Sube <code>pensum_iso_unapec.csv</code></a>.</div>
+}
+else if (disponibles.Count == 0)
+{
+    <div class="alert alert-secondary">Ahora mismo no hay materias disponibles para inscribir.</div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr><th style="width:90px">Código</th><th>Asignatura</th><th class="text-end" style="width:80px">Créditos</th><th class="text-center" style="width:120px">Cuatrimestre</th><th>Prerrequisito</th><th style="width:130px"></th></tr>
+                </thead>
+                <tbody>
+                @foreach (var m in disponibles)
+                {
+                    <tr>
+                        <td>@m.Materia.Codigo</td>
+                        <td>@m.Materia.Nombre @if (m.Materia.EsElectiva) { <span class="badge bg-light text-dark border">Electiva</span> }</td>
+                        <td class="text-end">@m.Materia.Creditos</td>
+                        <td class="text-center">@m.Materia.Cuatrimestre</td>
+                        <td>@Ui.PrerrequisitoTexto(m.Materia.Prerrequisitos) @if (!string.IsNullOrWhiteSpace(m.Materia.Prerrequisitos)) { <span class="text-success small">✓ cumplido</span> }</td>
+                        <td class="text-end"><a asp-controller="Estudiante" asp-action="DetalleMateriaFaltante" asp-route-codigo="@m.Materia.Codigo" class="btn btn-sm btn-outline-primary">Ver detalle</a></td>
+                    </tr>
+                }
+                </tbody>
+                <tfoot><tr class="table-light"><th colspan="2" class="text-end">@disponibles.Count materias · total</th><th class="text-end">@disponibles.Sum(m => m.Materia.Creditos)</th><th colspan="3"></th></tr></tfoot>
+            </table>
+        </div>
+    </div>
+    <p class="small text-muted mt-3">
+        Para armar los cuatrimestres futuros respetando prerrequisitos y el límite de créditos, usa el
+        <a asp-controller="Planificador" asp-action="Index">Planificador</a>.
+    </p>
+}

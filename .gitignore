@@ -1,0 +1,25 @@
+﻿# Build
+bin/
+obj/
+.vs/
+
+# Datos y sesión personales (nunca al repositorio ni al .zip)
+.auth/
+/samples/
+/HistorialAcademico.*/samples/
+*.db
+*.db-shm
+*.db-wal
+
+# Pénsums personales (los que cada persona crea pegando el texto de su plan): quedan en su computador
+pensums/*/personal-*.json
+
+# Secretos
+appsettings.Development.json
+*.user
+
+# Imágenes de marcas de terceros (escudos, logotipos): no van al repositorio
+docs/branding/*.png
+docs/branding/*.jpg
+docs/branding/*.jpeg
+docs/branding/*.svg
