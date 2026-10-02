@@ -174,5 +174,38 @@ public class SincronizacionTests
         Assert.Equal(351m, a.TotalPuntosCalidad);
         Assert.Equal(2.62m, a.TotalPga);
         Assert.Equal("SEP-DIC 2026", (await bd.Db.CursosEnProgreso.FirstAsync()).Periodo);
+        Assert.DoesNotContain("Ojo", r.Mensaje);   // un histórico que cuadra no lleva avisos
+    }
+
+    [Fact]
+    public async Task UnHistoricoDondeBannerCuentaMenosHorasIntentadasQueLasMateriasQueListaSeGuardaYAvisa()
+    {
+        // Lo que le pasó a un tester tras cambiarse de pénsum: Banner lista materias que no cuenta como intentadas.
+        using var bd = new BdPrueba();
+        var html = ValidadorHistoricoTests.ConHorasIntentadasCambiadas(Muestras.LeerAnonimizado(), periodo: 2, cambio: -5m);
+
+        var r = await bd.Sync.AplicarHtmlAsync(html);
+
+        Assert.True(r.Exito, r.Mensaje);
+        Assert.Contains("Sincronizado: 7 períodos", r.Mensaje);
+        Assert.Contains("Ojo, en 1 período Banner cuenta menos horas intentadas que las materias que lista", r.Mensaje);
+        Assert.Contains("tus puntos y tu índice sí cuadran", r.Mensaje);
+        Assert.Contains("ENE-ABR 2025: las materias suman 27 horas y Banner cuenta 22", r.Mensaje);
+        Assert.Equal(7, await bd.Db.Periodos.CountAsync());                 // y se guardó todo
+        Assert.Equal(50, await bd.Db.MateriasCursadas.CountAsync());
+        Assert.Equal(ResultadoSincronizacion.Exito, (await bd.Db.Sincronizaciones.SingleAsync()).Resultado);
+    }
+
+    [Fact]
+    public async Task SiFaltanMateriasRespectoDeLasHorasIntentadasNoSeGuardaNada()
+    {
+        using var bd = new BdPrueba();
+        var html = ValidadorHistoricoTests.ConHorasIntentadasCambiadas(Muestras.LeerAnonimizado(), periodo: 2, cambio: +3m);
+
+        var r = await bd.Sync.AplicarHtmlAsync(html);
+
+        Assert.False(r.Exito);
+        Assert.Contains("Los totales de Banner no cuadran, no guardé nada", r.Mensaje);
+        Assert.Equal(0, await bd.Db.Periodos.CountAsync());
     }
 }

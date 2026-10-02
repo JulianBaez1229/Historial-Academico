@@ -124,6 +124,11 @@ public class SincronizacionService
             var cursos = historico.EnProgreso.Sum(pe => pe.Cursos.Count);
             var mensaje = $"Sincronizado: {historico.Periodos.Count} períodos, {materias} materias, {cursos} cursos en progreso. " +
                           $"Índice según Banner: {historico.TotalGlobal!.Pga:0.00}.";
+            // No impiden guardar: Banner a veces lista materias que no cuenta como intentadas (por ejemplo, tras un cambio de pénsum).
+            var avisos = ValidadorHistorico.Avisos(historico);
+            if (avisos.Count > 0)
+                mensaje += $" Ojo, en {avisos.Count} {(avisos.Count == 1 ? "período" : "períodos")} Banner cuenta menos horas intentadas que las materias que lista; " +
+                           $"tus puntos y tu índice sí cuadran. {string.Join(" ", avisos.Take(2))}" + (avisos.Count > 2 ? $" (+{avisos.Count - 2} más)" : "");
             _db.Sincronizaciones.Add(Nueva(ResultadoSincronizacion.Exito, mensaje));
 
             await _db.SaveChangesAsync(ct);
