@@ -98,7 +98,12 @@ HA_CAPTURAS=1 dotnet test --filter CapturasReadme
 1. Con `main` en verde, crea y sube una etiqueta con el número de versión: `git tag v1.0.0` y `git push origin v1.0.0`.
    (`v1.0.0-beta.1` se publica como versión de prueba, no como la estable.)
 2. La Action «Publicar versión» prueba el código, arma el programa para Windows, Linux y macOS, y crea el Release con las sumas de comprobación.
-3. Revisa el Release en GitHub: que estén los cuatro archivos y `SHA256SUMS.txt`, y descarga el de Windows para abrirlo una vez.
+3. Revisa el Release en GitHub: que estén el instalador `HistorialAcademico-Instalador-vX.Y.Z.exe`, los cuatro `.zip`/`.tar.gz` y `SHA256SUMS.txt`, y
+   **instala el de Windows en un equipo limpio** (o una máquina virtual) para comprobar que se instala, abre el navegador y descarga Chromium.
+4. **No crees el Release a mano en la web de GitHub:** sube solo la etiqueta (o usa Actions → Publicar versión → Run workflow, escribiendo la etiqueta) y la Action lo crea con
+   todos los archivos. Si ya lo creaste a mano, la Action le agrega los archivos al mismo Release.
+5. **La primera vez que salga una versión estable** (no `-beta`), actualiza el README: borra el bloque «Estado actual» (entre los comentarios `ESTADO-RELEASE`).
+   Hasta entonces el README dice, con razón, que todavía no hay una versión estable.
 
 ## Conducta
 

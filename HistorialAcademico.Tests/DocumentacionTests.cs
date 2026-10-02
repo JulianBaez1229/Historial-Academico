@@ -58,6 +58,52 @@ public class DocumentacionTests
         }
     }
 
+    [Fact]
+    public void ElReadmeNoPrometeUnaDescargaMientrasElAvisoDeQueNoHayVersionSigaPuesto()
+    {
+        var readme = Leer("README.md");
+
+        // Mientras el bloque de estado esté, el README dice que todavía no hay versión estable y que la Opción B es la segura.
+        if (readme.Contains("<!-- ESTADO-RELEASE"))
+        {
+            Assert.Contains("todavía no hay una versión estable", readme);
+            Assert.Contains("**Pre-release**", readme);
+            Assert.Contains("Opción B: compilarlo tú (funciona hoy)", readme);
+            Assert.DoesNotContain("(recomendada)", readme);
+            Assert.Contains("ESTADO-RELEASE", Leer("CONTRIBUTING.md"));   // y quien publique sabe que debe quitarlo
+        }
+        else
+        {
+            Assert.DoesNotContain("todavía no hay una versión estable", readme);
+        }
+    }
+
+    [Fact]
+    public void LaOpcionDelInstaladorEsParaPersonasSinConocimientosTecnicos()
+    {
+        var readme = Leer("README.md");
+
+        Assert.Contains("Opción A: el instalador de Windows (no necesitas instalar nada más)", readme);
+        Assert.Contains("HistorialAcademico-Instalador-vX.Y.Z.exe", readme);
+        Assert.Contains("No hace falta instalar .NET, Git ni ningún otro programa", readme);
+        Assert.Contains("Más información", readme);                       // el aviso de Windows por no estar firmado
+        Assert.Contains("Ejecutar de todas formas", readme);
+        Assert.Contains("No te pide contraseña de administrador", readme);
+        Assert.Contains("no pierdes tus datos", readme);                  // actualizar
+        Assert.Contains("Desinstalar", readme);
+        Assert.Contains("HistorialAcademico.Web.exe", readme);            // la alternativa sin instalar
+    }
+
+    [Fact]
+    public void LaOpcionDeCompilarUsaLaDireccionRealDelRepositorioYLaCarpetaQueCrea()
+    {
+        var readme = Leer("README.md");
+
+        Assert.Contains("git clone https://github.com/JulianBaez1229/Historial-Academico.git", readme);
+        Assert.Contains("cd Historial-Academico", readme);
+        Assert.DoesNotContain("<dirección que te da el botón", readme);
+    }
+
     // ── Paleta ────────────────────────────────────────────────────────────────────────────
 
     [Fact]

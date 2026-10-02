@@ -31,34 +31,51 @@ _Las capturas usan datos ficticios._
 
 ## Requisitos
 
-- **Windows 10 u 11.** Para macOS y Linux también se publica el programa, pero solo se prueba de forma automática en Windows: si algo falla, cuéntanoslo en un _issue_. También puedes compilarlo tú (Opción B).
-- **Internet la primera vez**, para descargar Chromium (unos 150 MB). La aplicación lo instala sola al abrirse y muestra el avance en su ventana. Solo se usa para que inicies sesión
+- **Windows 10 u 11 (64 bits).** El instalador (Opción A) es para Windows. Para macOS y Linux se publican también archivos ya hechos, pero solo se prueban de forma automática en Windows: si algo falla, cuéntanoslo en un _issue_. En cualquier sistema puedes compilarlo tú (Opción B).
+- **Internet la primera vez**, para descargar Chromium (unos 150 MB). Con el instalador, la aplicación lo descarga sola al abrirse y muestra el avance en su ventana; si lo compilas tú, lo instalas con un comando (Opción B). Solo se usa para que inicies sesión
   en Banner y para exportar el plan a PDF o imagen.
 - Una cuenta de Banner de tu universidad (opcional: sin ella puedes usar la aplicación con tus materias escritas a mano).
 
 ## Instalación paso a paso
 
-### Opción A: el programa ya hecho (recomendada)
+<!-- ESTADO-RELEASE: borrar este bloque cuando salga la primera versión estable (ver «Publicar una versión» en CONTRIBUTING.md) -->
+> **Estado actual:** todavía no hay una versión estable. En la pestaña Releases solo hay versiones de prueba (marcadas **Pre-release**): puedes usar su instalador y nos ayudas a probarlo, pero pueden tener fallos. Si prefieres lo más seguro, usa la **Opción B**.
+<!-- /ESTADO-RELEASE -->
 
-1. Entra a la pestaña **Releases** de este repositorio y descarga el archivo de la última versión para tu sistema
-   (`HistorialAcademico-vX.Y.Z-win-x64.zip` para Windows; `linux-x64`, `osx-arm64` u `osx-x64` para Linux y Mac). No necesitas instalar .NET.
-   Junto a los archivos está `SHA256SUMS.txt` por si quieres comprobar que la descarga no se dañó.
-2. Descomprímelo en una carpeta tuya (por ejemplo, `Documentos\HistorialAcademico`).
-3. Abre `HistorialAcademico.Web.exe`. Se abre una ventana negra (déjala abierta mientras usas la aplicación) y, en unos segundos, tu navegador en `http://localhost:5296`.
-   Si Windows te avisa que es una aplicación desconocida, es porque el programa no está firmado: elige «Más información» y «Ejecutar de todas formas».
-4. La primera vez descarga el navegador que necesita (Chromium) y muestra el avance en la ventana negra; puede tardar unos minutos.
-5. Sigue el asistente de cuatro pasos: crear tu perfil, elegir tu universidad y carrera, conectar Banner (opcional) y sincronizar.
+### Opción A: el instalador de Windows (no necesitas instalar nada más)
 
-Para salir, cierra la ventana negra. Si el puerto 5296 está ocupado, el programa usa el siguiente libre y te lo dice en esa ventana.
+No hace falta instalar .NET, Git ni ningún otro programa: el instalador trae todo lo que la aplicación necesita, y el navegador que usa para Banner lo descarga ella sola.
 
-### Opción B: compilarlo tú
+1. Entra a la pestaña **Releases** de este repositorio, abre la versión más reciente y, en **Assets**, descarga el archivo
+   **`HistorialAcademico-Instalador-vX.Y.Z.exe`**.
+2. Haz doble clic en el archivo descargado. Si Windows muestra «Windows protegió su PC», es porque el instalador no está firmado (firmarlo cuesta dinero
+   y este es un proyecto gratuito de la comunidad): pulsa **Más información** y luego **Ejecutar de todas formas**.
+3. En el instalador pulsa **Siguiente** y después **Instalar**. No te pide contraseña de administrador. Deja marcada la casilla del acceso directo en el Escritorio si lo quieres.
+4. Al terminar queda abierta «Abrir Historial Académico ahora»: pulsa **Finalizar**. Se abre una **ventana negra** (déjala abierta mientras usas la aplicación)
+   y, en unos segundos, tu navegador en `http://localhost:5296`.
+5. **La primera vez** la ventana negra descarga el navegador que necesita (Chromium, unos 150 MB) y muestra el avance. Espera unos minutos; no la cierres.
+6. Sigue el asistente de cuatro pasos: crear tu perfil, elegir tu universidad y carrera, conectar Banner (opcional) y sincronizar.
+
+**Después:** abre la aplicación desde el acceso directo del Escritorio o desde el menú Inicio («Historial Académico»). Para salir, cierra la ventana negra.
+Si el puerto 5296 está ocupado, el programa usa el siguiente libre y te lo dice en esa ventana.
+
+**Actualizar:** la aplicación avisa cuando hay una versión nueva. Descarga su instalador y ábrelo: se instala encima de la anterior y **no pierdes tus datos**.
+
+**Desinstalar:** Configuración → Aplicaciones → Historial Académico. Tus datos se quedan en `%LOCALAPPDATA%\HistorialAcademico`; si quieres borrarlos,
+hazlo antes desde «Mis datos» en la aplicación (o elimina esa carpeta).
+
+**Otros sistemas y sin instalar:** en el mismo Release hay un `.zip` para Windows que no instala nada (descomprímelo y abre `HistorialAcademico.Web.exe`)
+y archivos `linux-x64`, `osx-arm64` y `osx-x64` para Linux y Mac (descomprime y ejecuta `HistorialAcademico.Web`). Junto a los archivos está `SHA256SUMS.txt`
+por si quieres comprobar que la descarga no se dañó.
+
+### Opción B: compilarlo tú (funciona hoy)
 
 1. Instala el [SDK de .NET 8](https://dotnet.microsoft.com/download) y [Git](https://git-scm.com/downloads).
 2. En una terminal:
 
    ```bash
-   git clone <dirección que te da el botón verde «Code» de esta página>
-   cd HistorialAcademico
+   git clone https://github.com/JulianBaez1229/Historial-Academico.git
+   cd Historial-Academico
    dotnet build
    pwsh HistorialAcademico.Banner/bin/Debug/net8.0/playwright.ps1 install chromium
    dotnet run --project HistorialAcademico.Web

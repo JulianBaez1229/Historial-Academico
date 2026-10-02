@@ -235,13 +235,71 @@ public class DistribucionTests
         Assert.StartsWith("name: Publicar versión\n", release);
         Assert.Contains("permissions:\n  contents: read", release);
         Assert.Contains("needs: probar", release);                       // no se arma nada sin pasar las pruebas
-        Assert.Contains("needs: armar", release);
+        Assert.Contains("needs: [armar, instalador]", release);          // el Release espera al programa de cada sistema y al instalador
         Assert.Contains("GH_TOKEN: ${{ github.token }}", release);
         Assert.Contains("--self-contained true", release);
         Assert.Contains("-p:Version=", release);
         Assert.Contains("SHA256SUMS", release);
         foreach (var rid in new[] { "win-x64", "linux-x64", "osx-arm64", "osx-x64" }) Assert.Contains(rid, release);
         Assert.Contains("--prerelease", release);                        // v1.2.3-beta.1 no es la versión estable
+    }
+
+    [Fact]
+    public void ElFlujoDeReleaseTambienSePuedeLanzarAManoYAgregaArchivosAUnReleaseQueYaExiste()
+    {
+        var release = Flujo("release.yml");
+
+        Assert.Contains("workflow_dispatch:\n    inputs:\n      etiqueta:", release);
+        Assert.Contains("ETIQUETA: ${{ github.event_name == 'workflow_dispatch' && inputs.etiqueta || github.ref_name }}", release);
+        Assert.DoesNotContain("$GITHUB_REF_NAME", release);              // todo usa la etiqueta elegida, no el nombre de la rama de un lanzamiento manual
+        Assert.Contains("gh release view \"$ETIQUETA\"", release);
+        Assert.Contains("gh release upload \"$ETIQUETA\" entrega/* --clobber", release);   // un Release creado a mano en la web no se queda sin archivos
+        Assert.Contains("gh release create \"$ETIQUETA\"", release);
+        Assert.Matches(@"\^v\[0-9\]\+", release);                        // la etiqueta escrita a mano también se valida
+    }
+
+    [Fact]
+    public void ElFlujoDeReleaseArmaElInstaladorDeWindowsConInnoSetup()
+    {
+        var release = Flujo("release.yml");
+
+        Assert.Contains("instalador:\n    name: Armar el instalador de Windows\n    needs: probar\n    runs-on: windows-latest", release);
+        Assert.Contains("choco install innosetup", release);
+        Assert.Contains("installer\\HistorialAcademico.iss", release);
+        Assert.Contains("/DAppVersion=", release);
+        Assert.Contains("/DOrigenPrograma=", release);
+        Assert.Contains("programa-instalador-win-x64", release);          // lo recoge el patrón programa-* del último trabajo
+        Assert.Contains("HistorialAcademico-Instalador-*.exe", release);
+        Assert.True(File.Exists(Ruta("installer", "HistorialAcademico.iss")));
+    }
+
+    [Fact]
+    public void ElScriptDelInstaladorInstalaSinAdministradorSinTocarLosDatosYEnEspanol()
+    {
+        var iss = File.ReadAllText(Ruta("installer", "HistorialAcademico.iss"));
+
+        Assert.Contains("PrivilegesRequired=lowest", iss);                         // sin pedir contraseña de administrador
+        Assert.Contains(@"DefaultDirName={localappdata}\Programs\HistorialAcademico", iss);
+        Assert.Contains("AppId={{", iss);                                          // siempre el mismo: una versión nueva se instala encima
+        Assert.Contains("OutputBaseFilename=HistorialAcademico-Instalador-v{#AppVersion}", iss);
+        Assert.Contains("compiler:Languages\\Spanish.isl", iss);
+        Assert.Contains(@"{#Ejecutable}", iss);
+        Assert.Contains("#define Ejecutable \"HistorialAcademico.Web.exe\"", iss);
+        Assert.Contains("recursesubdirs", iss);                                    // lleva wwwroot, pensums y el resto de la carpeta publicada
+        Assert.Contains("postinstall", iss);                                       // ofrece abrir la aplicación al terminar
+        Assert.Contains("Tasks: escritorio", iss);
+        Assert.Contains("CloseApplications=yes", iss);                             // una actualización cierra la aplicación si está abierta
+        Assert.DoesNotContain("[UninstallDelete]", iss);                           // desinstalar no borra los datos de la persona
+        Assert.DoesNotContain("LOCALAPPDATA%\\HistorialAcademico\"", iss);
+        Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, File.ReadAllBytes(Ruta("installer", "HistorialAcademico.iss")).Take(3).ToArray());   // Inno Setup lee UTF-8 solo con BOM
+    }
+
+    [Fact]
+    public void ElNombreDelEjecutableDelInstaladorCoincideConElDelProyecto()
+    {
+        // Si se renombra el proyecto, el instalador (acceso directo y «Abrir ahora») dejaría de funcionar.
+        Assert.Equal("HistorialAcademico.Web", typeof(HistorialAcademico.Web.Helpers.Arranque).Assembly.GetName().Name);
+        Assert.Contains("HistorialAcademico.Web.exe", File.ReadAllText(Ruta("installer", "HistorialAcademico.iss")));
     }
 
     [Theory]

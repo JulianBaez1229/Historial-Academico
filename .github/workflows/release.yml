@@ -1,14 +1,26 @@
 name: Publicar versión
 
-# Se ejecuta al subir una etiqueta que empieza con «v» (por ejemplo, v1.0.0): prueba el código, arma el programa para cada sistema
-# y lo publica como Release en GitHub. Nunca corre por un Pull Request, así que el código de un fork no puede publicar nada.
+# Se ejecuta al subir una etiqueta que empieza con «v» (por ejemplo, v1.0.0): prueba el código, arma el instalador de Windows y el programa
+# para cada sistema, y lo publica como Release en GitHub. También se puede lanzar a mano (Actions → Publicar versión → Run workflow) escribiendo
+# la etiqueta: arma todo con el código de la rama elegida y lo adjunta a ese Release (lo crea si no existe, o agrega los archivos si ya existe).
+# Nunca corre por un Pull Request, así que el código de un fork no puede publicar nada.
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      etiqueta:
+        description: 'Versión a publicar, por ejemplo v1.0.0 o v1.0.0-beta.2'
+        required: true
+        type: string
 
 permissions:
   contents: read
+
+env:
+  # La etiqueta que se publica: la que se subió o la que se escribió al lanzarlo a mano.
+  ETIQUETA: ${{ github.event_name == 'workflow_dispatch' && inputs.etiqueta || github.ref_name }}
 
 jobs:
   probar:
@@ -25,8 +37,8 @@ jobs:
       - name: Comprobar que la etiqueta es una versión (v1.2.3 o v1.2.3-beta.1)
         shell: bash
         run: |
-          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
-            echo "La etiqueta «$GITHUB_REF_NAME» no es una versión válida."
+          if ! [[ "$ETIQUETA" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "La etiqueta «$ETIQUETA» no es una versión válida."
             exit 1
           fi
 
@@ -62,14 +74,14 @@ jobs:
       - name: Publicar
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${ETIQUETA#v}"
           dotnet publish HistorialAcademico.Web --configuration Release --runtime "${{ matrix.rid }}" --self-contained true \
             -p:Version="$version" -p:RepositorioGitHub="$GITHUB_REPOSITORY" -o "salida/HistorialAcademico"
 
       - name: Comprimir
         shell: bash
         run: |
-          nombre="HistorialAcademico-${GITHUB_REF_NAME}-${{ matrix.rid }}"
+          nombre="HistorialAcademico-${ETIQUETA}-${{ matrix.rid }}"
           cd salida
           if [ "${{ matrix.rid }}" = "win-x64" ]; then
             zip -qr "../$nombre.zip" HistorialAcademico
@@ -86,13 +98,53 @@ jobs:
             HistorialAcademico-*.tar.gz
           if-no-files-found: error
 
+  instalador:
+    name: Armar el instalador de Windows
+    needs: probar
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publicar el programa para Windows
+        shell: bash
+        run: |
+          version="${ETIQUETA#v}"
+          dotnet publish HistorialAcademico.Web --configuration Release --runtime win-x64 --self-contained true \
+            -p:Version="$version" -p:RepositorioGitHub="$GITHUB_REPOSITORY" -o "salida/HistorialAcademico"
+
+      # Inno Setup arma un único .exe que instala sin pedir permisos de administrador, crea el acceso directo y el desinstalador.
+      - name: Instalar Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Armar el instalador
+        shell: pwsh
+        run: |
+          $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw 'No encontré ISCC.exe de Inno Setup después de instalarlo.' }
+          $version = $env:ETIQUETA.TrimStart('v')
+          & $iscc "/DAppVersion=$version" "/DOrigenPrograma=$PWD\salida\HistorialAcademico" "/O$PWD\entrega" installer\HistorialAcademico.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup falló con el código $LASTEXITCODE." }
+          Get-ChildItem entrega | Format-Table Name, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: programa-instalador-win-x64
+          path: entrega/HistorialAcademico-Instalador-*.exe
+          if-no-files-found: error
+
   publicar:
     name: Crear el Release
-    needs: armar
+    needs: [armar, instalador]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write   # lo único que necesita: crear el Release de esta etiqueta
+      contents: write   # lo único que necesita: crear el Release de esta etiqueta o adjuntarle los archivos
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -104,11 +156,16 @@ jobs:
         working-directory: entrega
         run: sha256sum HistorialAcademico-* > SHA256SUMS.txt
 
-      - name: Crear el Release
+      # Si el Release ya existe (por ejemplo, porque se creó a mano desde la web de GitHub) se le agregan los archivos; si no, se crea.
+      - name: Publicar el Release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          marca=""
-          case "$GITHUB_REF_NAME" in *-*) marca="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" entrega/* --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes $marca
+          if gh release view "$ETIQUETA" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$ETIQUETA" entrega/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            marca=""
+            case "$ETIQUETA" in *-*) marca="--prerelease" ;; esac
+            gh release create "$ETIQUETA" entrega/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$ETIQUETA" --generate-notes $marca
+          fi
